@@ -131,26 +131,6 @@ const Auth = () => {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="login-role">Rôle</Label>
-                    <Select
-                      value={loginData.role}
-                      onValueChange={(value: UserRole) => setLoginData({ ...loginData, role: value })}
-                      required
-                    >
-                      <SelectTrigger className="h-12">
-                        <SelectValue placeholder="Sélectionnez votre rôle" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {roles.map((role) => (
-                          <SelectItem key={role.value} value={role.value}>
-                            {role.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
                   <Button
                     type="submit"
                     className="w-full h-12 shadow-gold hover:shadow-gold hover:scale-105 transition-smooth"
