@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { useApp } from "@/contexts/AppContext";
 
@@ -45,6 +46,18 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   ];
 
   const isActive = (path: string) => location.pathname === path;
+
+  const getRoleLabel = (role: string) => {
+    const roles: Record<string, string> = {
+      admin: "Administrateur",
+      greffier: "Greffier",
+      juge: "Juge",
+      avocat: "Avocat",
+      justiciable: "Justiciable",
+      public: "Public",
+    };
+    return roles[role] || role;
+  };
 
   return (
     <div className="min-h-screen bg-background flex w-full">
@@ -141,18 +154,21 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 Bienvenue sur votre espace de gestion
               </p>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 cursor-pointer hover:opacity-80 transition-smooth" onClick={() => navigate("/dashboard/profile")}>
               <div className="text-right">
                 <p className="font-medium">
                   {currentUser ? `${currentUser.prenom} ${currentUser.nom}` : "Utilisateur"}
                 </p>
-                <p className="text-xs text-muted-foreground capitalize">
-                  {currentUser?.role || "Invité"}
+                <p className="text-xs text-muted-foreground">
+                  {currentUser ? getRoleLabel(currentUser.role) : "Invité"}
                 </p>
               </div>
-              <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-accent-foreground font-bold">
-                {currentUser ? `${currentUser.prenom[0]}${currentUser.nom[0]}` : "?"}
-              </div>
+              <Avatar className="w-10 h-10 ring-2 ring-primary/20">
+                <AvatarImage src={currentUser?.photo} alt={currentUser?.nom} />
+                <AvatarFallback className="bg-accent text-accent-foreground font-bold">
+                  {currentUser ? `${currentUser.prenom[0]}${currentUser.nom[0]}` : "?"}
+                </AvatarFallback>
+              </Avatar>
             </div>
           </div>
         </header>

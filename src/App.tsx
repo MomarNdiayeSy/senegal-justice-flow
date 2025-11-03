@@ -14,6 +14,7 @@ import Dossiers from "./pages/Dossiers";
 import Notifications from "./pages/Notifications";
 import Audit from "./pages/Audit";
 import Settings from "./pages/Settings";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="/dashboard/notifications" element={<Notifications />} />
             <Route path="/dashboard/audit" element={<Audit />} />
             <Route path="/dashboard/settings" element={<Settings />} />
+            <Route path="/dashboard/profile" element={<Profile />} />
             <Route path="/public-display" element={<PublicDisplay />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

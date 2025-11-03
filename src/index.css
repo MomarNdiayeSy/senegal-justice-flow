@@ -51,7 +51,8 @@ All colors MUST be HSL.
     --sidebar-ring: 45 64% 53%;
 
     /* Gradients institutionnels */
-    --gradient-hero: linear-gradient(135deg, hsl(210 100% 20%), hsl(210 100% 30%));
+    --gradient-hero: linear-gradient(135deg, hsl(210 100% 20%), hsl(0 0% 100%));
+    --gradient-auth: linear-gradient(180deg, hsl(210 100% 20%) 0%, hsl(0 0% 100%) 100%);
     --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(210 20% 98%));
     
     /* Shadows élégantes */
@@ -125,6 +126,10 @@ All colors MUST be HSL.
 @layer utilities {
   .gradient-hero {
     background: var(--gradient-hero);
+  }
+
+  .gradient-auth {
+    background: var(--gradient-auth);
   }
 
   .gradient-card {

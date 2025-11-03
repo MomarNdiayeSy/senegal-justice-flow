@@ -57,22 +57,25 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center gradient-hero p-6">
+    <div className="min-h-screen flex items-center justify-center gradient-auth p-6">
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.5 }}
         className="w-full max-w-md"
       >
-        <Card className="shadow-elegant border-0">
-          <CardHeader className="text-center pb-8">
-            <div className="flex justify-center mb-4">
-              <div className="p-4 rounded-full bg-primary/10">
-                <Scale className="w-12 h-12 text-primary" />
+        <Card className="shadow-elegant border-0 bg-white">
+          <CardHeader className="text-center pb-8 pt-10">
+            <div className="flex justify-center mb-6">
+              <div className="p-5 rounded-full bg-primary/10 shadow-md">
+                <Scale className="w-16 h-16 text-primary" />
               </div>
             </div>
-            <CardTitle className="text-3xl">e-Justice Sénégal</CardTitle>
-            <CardDescription className="text-base">
+            <CardTitle className="text-3xl font-bold text-primary mb-2">e-Justice Sénégal</CardTitle>
+            <CardDescription className="text-base text-muted-foreground">
+              Ministère de la Justice
+            </CardDescription>
+            <CardDescription className="text-sm mt-1">
               Connectez-vous à votre espace professionnel
             </CardDescription>
           </CardHeader>
@@ -175,11 +178,11 @@ const Auth = () => {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="text-center mt-6 text-white"
+          className="text-center mt-6"
         >
           <button 
             onClick={() => navigate("/")} 
-            className="hover:text-accent transition-smooth cursor-pointer"
+            className="text-primary hover:text-accent transition-smooth cursor-pointer font-medium"
           >
             ← Retour à l'accueil
           </button>
