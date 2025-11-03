@@ -29,7 +29,12 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
-  const { currentUser, notifications } = useApp();
+  const { currentUser, notifications, logout } = useApp();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/auth");
+  };
   
   const unreadNotifications = notifications.filter(
     n => !n.lue && (!currentUser || n.destinataireId === currentUser.id)
@@ -52,9 +57,9 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       admin: "Administrateur",
       greffier: "Greffier",
       juge: "Juge",
+      procureur: "Procureur",
       avocat: "Avocat",
-      justiciable: "Justiciable",
-      public: "Public",
+      justiciable: "Justiciable"
     };
     return roles[role] || role;
   };
@@ -135,7 +140,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           <Button
             variant="ghost"
             className="w-full justify-start hover:bg-white/10 text-red-300 hover:text-red-200"
-            onClick={() => navigate("/")}
+            onClick={handleLogout}
           >
             <LogOut className="w-5 h-5 mr-3" />
             {sidebarOpen && "Déconnexion"}

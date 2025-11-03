@@ -78,6 +78,8 @@ export interface LogAudit {
 interface AppContextType {
   currentUser: User | null;
   setCurrentUser: (user: User | null) => void;
+  logout: () => void;
+  login: (email: string, password: string) => { success: boolean; user?: User; message?: string };
   users: User[];
   audiences: Audience[];
   dossiers: Dossier[];
@@ -140,6 +142,26 @@ const mockUsers: User[] = [
     telephone: "+221 77 456 78 90",
     tribunal: "Barreau de Dakar",
     dateCreation: "2024-02-10"
+  },
+  {
+    id: "5",
+    email: "procureur@justice.sn",
+    nom: "Sow",
+    prenom: "Ibrahima",
+    role: "procureur",
+    telephone: "+221 77 567 89 01",
+    tribunal: "Tribunal de Dakar",
+    dateCreation: "2024-02-15"
+  },
+  {
+    id: "6",
+    email: "justiciable@justice.sn",
+    nom: "Fall",
+    prenom: "Mariama",
+    role: "justiciable",
+    telephone: "+221 77 678 90 12",
+    tribunal: "N/A",
+    dateCreation: "2024-03-01"
   }
 ];
 
@@ -391,10 +413,45 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setLogs([newLog, ...logs]);
   };
 
+  const login = (email: string, password: string) => {
+    const user = users.find(u => u.email === email);
+    
+    if (!user) {
+      return { success: false, message: "Email incorrect" };
+    }
+    
+    // Simulation de vérification de mot de passe (en production, utilisez un hash)
+    if (password.length < 6) {
+      return { success: false, message: "Mot de passe incorrect" };
+    }
+    
+    setCurrentUser({ ...user, dernierAcces: new Date().toISOString() });
+    addLog({
+      userId: user.id,
+      action: "Connexion",
+      details: "Connexion réussie"
+    });
+    
+    return { success: true, user };
+  };
+
+  const logout = () => {
+    if (currentUser) {
+      addLog({
+        userId: currentUser.id,
+        action: "Déconnexion",
+        details: "Déconnexion de l'utilisateur"
+      });
+    }
+    setCurrentUser(null);
+  };
+
   return (
     <AppContext.Provider value={{
       currentUser,
       setCurrentUser,
+      logout,
+      login,
       users,
       audiences,
       dossiers,

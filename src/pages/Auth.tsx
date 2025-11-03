@@ -30,30 +30,65 @@ const Auth = () => {
   });
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { users, addUser, setCurrentUser } = useApp();
+  const { users, addUser, setCurrentUser, login, currentUser } = useApp();
+
+  // Rediriger si déjà connecté
+  if (currentUser) {
+    navigate("/dashboard");
+    return null;
+  }
 
   const roles = [
     { value: "admin", label: "Administrateur" },
     { value: "greffier", label: "Greffier" },
     { value: "juge", label: "Juge" },
+    { value: "procureur", label: "Procureur" },
     { value: "avocat", label: "Avocat" },
-    { value: "justiciable", label: "Justiciable" },
-    { value: "public", label: "Public" }
+    { value: "justiciable", label: "Justiciable" }
   ];
+
+  const getRoleDashboardPath = (role: UserRole): string => {
+    switch (role) {
+      case "admin":
+        return "/dashboard/users";
+      case "greffier":
+        return "/dashboard";
+      case "juge":
+        return "/dashboard/stats";
+      case "procureur":
+        return "/dashboard/stats";
+      case "avocat":
+        return "/dashboard/notifications";
+      case "justiciable":
+        return "/dashboard";
+      default:
+        return "/dashboard";
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulation de connexion
     setTimeout(() => {
-      toast({
-        title: "Connexion réussie",
-        description: `Bienvenue sur e-Justice Sénégal`,
-      });
-      setIsLoading(false);
-      navigate("/dashboard");
-    }, 1500);
+      const result = login(loginData.email, loginData.password);
+      
+      if (result.success && result.user) {
+        toast({
+          title: "Connexion réussie",
+          description: `Bienvenue ${result.user.prenom} ${result.user.nom}`,
+        });
+        setIsLoading(false);
+        navigate(getRoleDashboardPath(result.user.role));
+      } else {
+        toast({
+          title: "Erreur de connexion",
+          description: result.message || "Email ou mot de passe incorrect",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+      }
+    }, 800);
   };
 
   return (
@@ -158,6 +193,20 @@ const Auth = () => {
                       Mot de passe oublié ?
                     </a>
                   </div>
+
+                  {/* Comptes de test */}
+                  <div className="mt-6 p-4 bg-muted/50 rounded-lg border border-border">
+                    <p className="text-xs font-semibold text-primary mb-2">Comptes de test disponibles :</p>
+                    <div className="text-xs space-y-1 text-muted-foreground">
+                      <p>• admin@justice.sn (Administrateur)</p>
+                      <p>• greffier@justice.sn (Greffier)</p>
+                      <p>• juge.ba@justice.sn (Juge)</p>
+                      <p>• procureur@justice.sn (Procureur)</p>
+                      <p>• avocat.sy@justice.sn (Avocat)</p>
+                      <p>• justiciable@justice.sn (Justiciable)</p>
+                      <p className="mt-2 text-primary font-medium">Mot de passe : 123456 (min. 6 caractères)</p>
+                    </div>
+                  </div>
                 </form>
               </TabsContent>
 
@@ -167,6 +216,17 @@ const Auth = () => {
                   e.preventDefault();
                   setIsLoading(true);
                   setTimeout(() => {
+                    // Vérifier si l'email existe déjà
+                    if (users.find(u => u.email === signupData.email)) {
+                      toast({
+                        title: "Erreur d'inscription",
+                        description: "Cet email est déjà utilisé",
+                        variant: "destructive"
+                      });
+                      setIsLoading(false);
+                      return;
+                    }
+
                     const newUser = {
                       ...signupData,
                       id: `user-${Date.now()}`,
@@ -179,8 +239,8 @@ const Auth = () => {
                       description: `Bienvenue ${signupData.prenom} ${signupData.nom}`,
                     });
                     setIsLoading(false);
-                    navigate("/dashboard");
-                  }, 1500);
+                    navigate(getRoleDashboardPath(signupData.role));
+                  }, 800);
                 }} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">

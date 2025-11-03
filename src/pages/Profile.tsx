@@ -60,9 +60,9 @@ const Profile = () => {
       admin: "Administrateur",
       greffier: "Greffier",
       juge: "Juge",
+      procureur: "Procureur",
       avocat: "Avocat",
-      justiciable: "Justiciable",
-      public: "Public",
+      justiciable: "Justiciable"
     };
     return roles[role] || role;
   };
