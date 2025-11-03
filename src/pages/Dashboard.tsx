@@ -16,66 +16,28 @@ import {
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import DashboardLayout from "@/components/DashboardLayout";
+import { useApp } from "@/contexts/AppContext";
 import { useToast } from "@/hooks/use-toast";
 
-interface Audience {
-  id: string;
-  numero: string;
-  parties: string;
-  date: string;
-  heure: string;
-  salle: string;
-  juge: string;
-  statut: "prevue" | "en_cours" | "reportee" | "terminee";
-}
-
 const Dashboard = () => {
+  const { audiences, users, addAudience } = useApp();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
-  const [audiences, setAudiences] = useState<Audience[]>([
-    {
-      id: "1",
-      numero: "AUD-2025-001",
-      parties: "Diallo vs Sarr",
-      date: "2025-02-15",
-      heure: "09:00",
-      salle: "Salle 1",
-      juge: "M. Ndiaye",
-      statut: "prevue"
-    },
-    {
-      id: "2",
-      numero: "AUD-2025-002",
-      parties: "État vs Fall",
-      date: "2025-02-15",
-      heure: "14:30",
-      salle: "Salle 3",
-      juge: "Mme Ba",
-      statut: "en_cours"
-    },
-    {
-      id: "3",
-      numero: "AUD-2025-003",
-      parties: "Sow vs Entreprise ABC",
-      date: "2025-02-16",
-      heure: "10:00",
-      salle: "Salle 2",
-      juge: "M. Diop",
-      statut: "reportee"
-    },
-    {
-      id: "4",
-      numero: "AUD-2025-004",
-      parties: "Famille Gueye succession",
-      date: "2025-02-14",
-      heure: "15:00",
-      salle: "Salle 1",
-      juge: "Mme Sy",
-      statut: "terminee"
-    }
-  ]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    numero: "",
+    parties: "",
+    date: "",
+    heure: "",
+    salle: "",
+    jugeId: "",
+    procureurId: "",
+    avocatIds: [] as string[],
+    justiciableId: "",
+    statut: "prevue" as "prevue" | "en_cours" | "reportee" | "terminee"
+  });
 
-  const getStatusBadge = (statut: Audience["statut"]) => {
+  const getStatusBadge = (statut: "prevue" | "en_cours" | "reportee" | "terminee") => {
     const variants = {
       prevue: { label: "Prévue", className: "bg-blue-500 hover:bg-blue-600" },
       en_cours: { label: "En cours", className: "bg-amber-500 hover:bg-amber-600" },
@@ -103,6 +65,31 @@ const Dashboard = () => {
       audience.numero.toLowerCase().includes(searchTerm.toLowerCase()) ||
       audience.parties.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    addAudience(formData);
+    toast({
+      title: "Audience créée",
+      description: `L'audience ${formData.numero} a été créée.`
+    });
+    setDialogOpen(false);
+    setFormData({
+      numero: "",
+      parties: "",
+      date: "",
+      heure: "",
+      salle: "",
+      jugeId: "",
+      procureurId: "",
+      avocatIds: [],
+      justiciableId: "",
+      statut: "prevue"
+    });
+  };
+
+  const juges = users.filter(u => u.role === "juge");
+  const avocats = users.filter(u => u.role === "avocat");
 
   return (
     <DashboardLayout>
@@ -149,50 +136,89 @@ const Dashboard = () => {
                   <DialogContent className="max-w-2xl">
                     <DialogHeader>
                       <DialogTitle>Créer une nouvelle audience</DialogTitle>
-                      <DialogDescription>
-                        Remplissez les informations de l'audience
-                      </DialogDescription>
-                    </DialogHeader>
-                    <form className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>Numéro d'affaire</Label>
-                          <Input placeholder="AUD-2025-XXX" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Parties</Label>
-                          <Input placeholder="Partie A vs Partie B" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Date</Label>
-                          <Input type="date" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Heure</Label>
-                          <Input type="time" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Salle</Label>
-                          <Select>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Sélectionner" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="1">Salle 1</SelectItem>
-                              <SelectItem value="2">Salle 2</SelectItem>
-                              <SelectItem value="3">Salle 3</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Juge</Label>
-                          <Input placeholder="Nom du juge" />
-                        </div>
+                    <DialogDescription>
+                      Remplissez les informations de l'audience
+                    </DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Numéro d'affaire</Label>
+                        <Input 
+                          required
+                          value={formData.numero}
+                          onChange={(e) => setFormData({ ...formData, numero: e.target.value })}
+                          placeholder="AUD-2025-XXX" 
+                        />
                       </div>
-                      <Button type="submit" className="w-full">
-                        Créer l'audience
-                      </Button>
-                    </form>
+                      <div className="space-y-2">
+                        <Label>Parties</Label>
+                        <Input 
+                          required
+                          value={formData.parties}
+                          onChange={(e) => setFormData({ ...formData, parties: e.target.value })}
+                          placeholder="Partie A vs Partie B" 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Date</Label>
+                        <Input 
+                          required
+                          type="date" 
+                          value={formData.date}
+                          onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Heure</Label>
+                        <Input 
+                          required
+                          type="time" 
+                          value={formData.heure}
+                          onChange={(e) => setFormData({ ...formData, heure: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Salle</Label>
+                        <Select
+                          required
+                          value={formData.salle}
+                          onValueChange={(value) => setFormData({ ...formData, salle: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Sélectionner" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Salle 1">Salle 1</SelectItem>
+                            <SelectItem value="Salle 2">Salle 2</SelectItem>
+                            <SelectItem value="Salle 3">Salle 3</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Juge</Label>
+                        <Select
+                          required
+                          value={formData.jugeId}
+                          onValueChange={(value) => setFormData({ ...formData, jugeId: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Sélectionner" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {juges.map((juge) => (
+                              <SelectItem key={juge.id} value={juge.id}>
+                                {juge.prenom} {juge.nom}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <Button type="submit" className="w-full">
+                      Créer l'audience
+                    </Button>
+                  </form>
                   </DialogContent>
                 </Dialog>
               </div>
@@ -246,7 +272,7 @@ const Dashboard = () => {
                             </div>
                             <div className="flex items-center gap-2 text-muted-foreground">
                               <MapPin className="w-4 h-4" />
-                              <span>{audience.salle} • {audience.juge}</span>
+                              <span>{audience.salle} • {users.find(u => u.id === audience.jugeId)?.nom || "Juge"}</span>
                             </div>
                           </div>
                         </div>

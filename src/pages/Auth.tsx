@@ -5,20 +5,32 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Scale, Eye, EyeOff, LogIn } from "lucide-react";
+import { Scale, Eye, EyeOff, LogIn, UserPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useApp, UserRole } from "@/contexts/AppContext";
 
 const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [loginData, setLoginData] = useState({
     email: "",
     password: "",
-    role: ""
+    role: "" as UserRole
+  });
+  const [signupData, setSignupData] = useState({
+    email: "",
+    password: "",
+    nom: "",
+    prenom: "",
+    role: "" as UserRole,
+    telephone: "",
+    tribunal: ""
   });
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { users, addUser, setCurrentUser } = useApp();
 
   const roles = [
     { value: "admin", label: "Administrateur" },
@@ -73,8 +85,8 @@ const Auth = () => {
                   id="email"
                   type="email"
                   placeholder="votre.email@justice.sn"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  value={loginData.email}
+                  onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
                   required
                   className="h-12"
                 />
@@ -87,8 +99,8 @@ const Auth = () => {
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    value={loginData.password}
+                    onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                     required
                     className="h-12 pr-12"
                   />
@@ -111,8 +123,8 @@ const Auth = () => {
               <div className="space-y-2">
                 <Label htmlFor="role">Rôle</Label>
                 <Select
-                  value={formData.role}
-                  onValueChange={(value) => setFormData({ ...formData, role: value })}
+                  value={loginData.role}
+                  onValueChange={(value: UserRole) => setLoginData({ ...loginData, role: value })}
                   required
                 >
                   <SelectTrigger className="h-12">

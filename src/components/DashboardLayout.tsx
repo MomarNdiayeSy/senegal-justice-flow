@@ -10,10 +10,15 @@ import {
   Menu, 
   X,
   LogOut,
-  Settings
+  Settings,
+  Bell,
+  Shield,
+  FileText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useApp } from "@/contexts/AppContext";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -23,12 +28,20 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
+  const { currentUser, notifications } = useApp();
+  
+  const unreadNotifications = notifications.filter(
+    n => !n.lue && (!currentUser || n.destinataireId === currentUser.id)
+  ).length;
 
   const menuItems = [
     { icon: Calendar, label: "Audiences", path: "/dashboard" },
+    { icon: FileText, label: "Dossiers", path: "/dashboard/dossiers" },
+    { icon: Bell, label: "Notifications", path: "/dashboard/notifications" },
     { icon: BarChart3, label: "Statistiques", path: "/dashboard/stats" },
-    { icon: Monitor, label: "Affichage public", path: "/public-display" },
     { icon: Users, label: "Utilisateurs", path: "/dashboard/users" },
+    { icon: Shield, label: "Audit", path: "/dashboard/audit" },
+    { icon: Monitor, label: "Affichage public", path: "/public-display" },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -71,7 +84,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               key={item.path}
               whileHover={{ x: 5 }}
               className={cn(
-                "flex items-center gap-3 p-3 rounded-lg transition-smooth cursor-pointer",
+                "flex items-center gap-3 p-3 rounded-lg transition-smooth cursor-pointer relative",
                 isActive(item.path)
                   ? "bg-accent text-accent-foreground shadow-gold"
                   : "hover:bg-white/10"
@@ -83,10 +96,15 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 <motion.span
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="font-medium"
+                  className="font-medium flex-1"
                 >
                   {item.label}
                 </motion.span>
+              )}
+              {item.label === "Notifications" && unreadNotifications > 0 && (
+                <Badge className="bg-destructive hover:bg-destructive text-white px-2 py-0 text-xs">
+                  {unreadNotifications}
+                </Badge>
               )}
             </motion.div>
           ))}
@@ -96,7 +114,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           <Button
             variant="ghost"
             className="w-full justify-start hover:bg-white/10"
-            onClick={() => {}}
+            onClick={() => navigate("/dashboard/settings")}
           >
             <Settings className="w-5 h-5 mr-3" />
             {sidebarOpen && "Paramètres"}
@@ -125,11 +143,15 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             </div>
             <div className="flex items-center gap-4">
               <div className="text-right">
-                <p className="font-medium">Jean Dupont</p>
-                <p className="text-xs text-muted-foreground">Greffier</p>
+                <p className="font-medium">
+                  {currentUser ? `${currentUser.prenom} ${currentUser.nom}` : "Utilisateur"}
+                </p>
+                <p className="text-xs text-muted-foreground capitalize">
+                  {currentUser?.role || "Invité"}
+                </p>
               </div>
               <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-accent-foreground font-bold">
-                JD
+                {currentUser ? `${currentUser.prenom[0]}${currentUser.nom[0]}` : "?"}
               </div>
             </div>
           </div>
