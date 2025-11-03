@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Scale, Monitor, BarChart3, ArrowRight, CheckCircle2 } from "lucide-react";
@@ -9,6 +9,7 @@ import iconAffichage from "@/assets/icon-affichage.png";
 import iconStats from "@/assets/icon-stats.png";
 
 const Index = () => {
+  const navigate = useNavigate();
   const features = [
     {
       icon: iconGestion,
@@ -50,11 +51,13 @@ const Index = () => {
               <p className="text-xs opacity-90">Ministère de la Justice</p>
             </div>
           </div>
-          <Link to="/auth">
-            <Button variant="outline" className="bg-white/10 border-white/20 hover:bg-white/20 text-white">
-              Se connecter
-            </Button>
-          </Link>
+          <Button 
+            variant="outline" 
+            className="bg-white/10 border-white/20 hover:bg-white/20 text-white"
+            onClick={() => navigate("/auth")}
+          >
+            Se connecter
+          </Button>
         </div>
       </motion.header>
 
@@ -78,18 +81,22 @@ const Index = () => {
                 La plateforme de digitalisation complète du suivi des audiences judiciaires au Sénégal.
               </p>
               <div className="flex gap-4">
-                <Link to="/auth">
-                  <Button size="lg" className="shadow-gold hover:shadow-gold hover:scale-105 transition-smooth">
-                    Commencer
-                    <ArrowRight className="ml-2 w-5 h-5" />
-                  </Button>
-                </Link>
-                <Link to="/public-display">
-                  <Button size="lg" variant="outline">
-                    <Monitor className="mr-2 w-5 h-5" />
-                    Affichage public
-                  </Button>
-                </Link>
+                <Button 
+                  size="lg" 
+                  className="shadow-gold hover:shadow-gold hover:scale-105 transition-smooth"
+                  onClick={() => navigate("/auth")}
+                >
+                  Commencer
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+                <Button 
+                  size="lg" 
+                  variant="outline"
+                  onClick={() => navigate("/public-display")}
+                >
+                  <Monitor className="mr-2 w-5 h-5" />
+                  Affichage public
+                </Button>
               </div>
             </motion.div>
 
@@ -220,12 +227,15 @@ const Index = () => {
             <p className="text-xl mb-8 opacity-90 max-w-2xl mx-auto">
               Rejoignez les tribunaux sénégalais qui ont déjà adopté la transformation numérique.
             </p>
-            <Link to="/auth">
-              <Button size="lg" variant="outline" className="bg-white text-primary hover:bg-white/90 shadow-gold">
-                Accéder à la plateforme
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-            </Link>
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="bg-white text-primary hover:bg-white/90 shadow-gold"
+              onClick={() => navigate("/auth")}
+            >
+              Accéder à la plateforme
+              <ArrowRight className="ml-2 w-5 h-5" />
+            </Button>
           </motion.div>
         </div>
       </section>

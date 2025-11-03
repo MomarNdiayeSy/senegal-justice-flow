@@ -165,9 +165,12 @@ const Auth = () => {
           transition={{ delay: 0.3 }}
           className="text-center mt-6 text-white"
         >
-          <a href="/" className="hover:text-accent transition-smooth">
+          <button 
+            onClick={() => navigate("/")} 
+            className="hover:text-accent transition-smooth cursor-pointer"
+          >
             ← Retour à l'accueil
-          </a>
+          </button>
         </motion.div>
       </motion.div>
     </div>

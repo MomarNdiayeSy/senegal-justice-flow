@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   Scale, 
@@ -22,6 +22,7 @@ interface DashboardLayoutProps {
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const menuItems = [
     { icon: Calendar, label: "Audiences", path: "/dashboard" },
@@ -66,28 +67,28 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
         <nav className="p-4 space-y-2">
           {menuItems.map((item) => (
-            <Link key={item.path} to={item.path}>
-              <motion.div
-                whileHover={{ x: 5 }}
-                className={cn(
-                  "flex items-center gap-3 p-3 rounded-lg transition-smooth cursor-pointer",
-                  isActive(item.path)
-                    ? "bg-accent text-accent-foreground shadow-gold"
-                    : "hover:bg-white/10"
-                )}
-              >
-                <item.icon className="w-5 h-5 flex-shrink-0" />
-                {sidebarOpen && (
-                  <motion.span
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="font-medium"
-                  >
-                    {item.label}
-                  </motion.span>
-                )}
-              </motion.div>
-            </Link>
+            <motion.div
+              key={item.path}
+              whileHover={{ x: 5 }}
+              className={cn(
+                "flex items-center gap-3 p-3 rounded-lg transition-smooth cursor-pointer",
+                isActive(item.path)
+                  ? "bg-accent text-accent-foreground shadow-gold"
+                  : "hover:bg-white/10"
+              )}
+              onClick={() => navigate(item.path)}
+            >
+              <item.icon className="w-5 h-5 flex-shrink-0" />
+              {sidebarOpen && (
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="font-medium"
+                >
+                  {item.label}
+                </motion.span>
+              )}
+            </motion.div>
           ))}
         </nav>
 
@@ -100,15 +101,14 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             <Settings className="w-5 h-5 mr-3" />
             {sidebarOpen && "Paramètres"}
           </Button>
-          <Link to="/">
-            <Button
-              variant="ghost"
-              className="w-full justify-start hover:bg-white/10 text-red-300 hover:text-red-200"
-            >
-              <LogOut className="w-5 h-5 mr-3" />
-              {sidebarOpen && "Déconnexion"}
-            </Button>
-          </Link>
+          <Button
+            variant="ghost"
+            className="w-full justify-start hover:bg-white/10 text-red-300 hover:text-red-200"
+            onClick={() => navigate("/")}
+          >
+            <LogOut className="w-5 h-5 mr-3" />
+            {sidebarOpen && "Déconnexion"}
+          </Button>
         </div>
       </motion.aside>
 
