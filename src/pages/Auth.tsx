@@ -67,16 +67,34 @@ const Auth = () => {
     }
   };
 
+  const validatePassword = (password: string): { valid: boolean; message?: string } => {
+    if (password.length < 6) {
+      return { valid: false, message: "Le mot de passe doit contenir au moins 6 caractères" };
+    }
+    return { valid: true };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+
+    // Validate inputs
+    if (!loginData.email || !loginData.password) {
+      toast({
+        title: "Erreur de validation",
+        description: "Veuillez remplir tous les champs",
+        variant: "destructive"
+      });
+      setIsLoading(false);
+      return;
+    }
 
     setTimeout(() => {
       const result = login(loginData.email, loginData.password);
       
       if (result.success && result.user) {
         toast({
-          title: "Connexion réussie",
+          title: "✓ Connexion réussie",
           description: `Bienvenue ${result.user.prenom} ${result.user.nom}`,
         });
         setIsLoading(false);
@@ -216,6 +234,42 @@ const Auth = () => {
                 <form onSubmit={(e) => {
                   e.preventDefault();
                   setIsLoading(true);
+                  
+                  // Validate inputs
+                  if (!signupData.email || !signupData.password || !signupData.nom || !signupData.prenom) {
+                    toast({
+                      title: "Erreur de validation",
+                      description: "Veuillez remplir tous les champs obligatoires",
+                      variant: "destructive"
+                    });
+                    setIsLoading(false);
+                    return;
+                  }
+
+                  // Validate password
+                  const passwordValidation = validatePassword(signupData.password);
+                  if (!passwordValidation.valid) {
+                    toast({
+                      title: "Mot de passe invalide",
+                      description: passwordValidation.message,
+                      variant: "destructive"
+                    });
+                    setIsLoading(false);
+                    return;
+                  }
+
+                  // Validate email format
+                  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                  if (!emailRegex.test(signupData.email)) {
+                    toast({
+                      title: "Email invalide",
+                      description: "Veuillez entrer une adresse email valide",
+                      variant: "destructive"
+                    });
+                    setIsLoading(false);
+                    return;
+                  }
+
                   setTimeout(() => {
                     // Vérifier si l'email existe déjà
                     if (users.find(u => u.email === signupData.email)) {
@@ -236,7 +290,7 @@ const Auth = () => {
                     addUser(newUser);
                     setCurrentUser(newUser);
                     toast({
-                      title: "Inscription réussie",
+                      title: "✓ Inscription réussie",
                       description: `Bienvenue ${signupData.prenom} ${signupData.nom}`,
                     });
                     setIsLoading(false);

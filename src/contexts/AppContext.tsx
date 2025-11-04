@@ -282,11 +282,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateUser = (id: string, data: Partial<User>) => {
+    const user = users.find(u => u.id === id);
     setUsers(users.map(u => u.id === id ? { ...u, ...data } : u));
+    
+    // Update current user if it's the same user
+    if (currentUser?.id === id) {
+      setCurrentUser({ ...currentUser, ...data });
+    }
+    
     addLog({
       userId: currentUser?.id || "system",
       action: "Modification utilisateur",
-      details: `Utilisateur ${id} modifié`
+      details: `Profil de ${user?.prenom} ${user?.nom} modifié`
     });
   };
 
@@ -417,22 +424,40 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const user = users.find(u => u.email === email);
     
     if (!user) {
-      return { success: false, message: "Email incorrect" };
+      // Log failed login attempt
+      addLog({
+        userId: "system",
+        action: "Connexion échouée",
+        details: `Tentative de connexion avec l'email: ${email} (utilisateur inexistant)`
+      });
+      return { success: false, message: "Email ou mot de passe incorrect" };
     }
     
     // Simulation de vérification de mot de passe (en production, utilisez un hash)
-    if (password.length < 6) {
-      return { success: false, message: "Mot de passe incorrect" };
+    // Pour les tests, le mot de passe est "123456" pour tous les utilisateurs
+    if (password !== "123456") {
+      // Log failed login attempt
+      addLog({
+        userId: user.id,
+        action: "Connexion échouée",
+        details: `Tentative de connexion échouée pour ${user.prenom} ${user.nom} (mot de passe incorrect)`
+      });
+      return { success: false, message: "Email ou mot de passe incorrect" };
     }
     
-    setCurrentUser({ ...user, dernierAcces: new Date().toISOString() });
+    // Update user last access
+    const updatedUser = { ...user, dernierAcces: new Date().toISOString() };
+    setUsers(users.map(u => u.id === user.id ? updatedUser : u));
+    setCurrentUser(updatedUser);
+    
+    // Log successful login
     addLog({
       userId: user.id,
       action: "Connexion",
-      details: "Connexion réussie"
+      details: `${user.prenom} ${user.nom} (${user.role}) s'est connecté avec succès`
     });
     
-    return { success: true, user };
+    return { success: true, user: updatedUser };
   };
 
   const logout = () => {

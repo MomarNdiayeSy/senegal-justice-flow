@@ -68,17 +68,48 @@ const Users = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast({
+        title: "Email invalide",
+        description: "Veuillez entrer une adresse email valide",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate phone number
+    if (!formData.telephone.match(/^\+?[\d\s-]+$/)) {
+      toast({
+        title: "Téléphone invalide",
+        description: "Veuillez entrer un numéro de téléphone valide",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     if (editingUser) {
       updateUser(editingUser.id, formData);
       toast({
-        title: "Utilisateur modifié",
+        title: "✓ Utilisateur modifié",
         description: `${formData.prenom} ${formData.nom} a été mis à jour.`
       });
     } else {
+      // Check if email already exists
+      if (users.find(u => u.email === formData.email)) {
+        toast({
+          title: "Email déjà utilisé",
+          description: "Cet email est déjà associé à un autre utilisateur",
+          variant: "destructive"
+        });
+        return;
+      }
+      
       addUser(formData);
       toast({
-        title: "Utilisateur créé",
-        description: `${formData.prenom} ${formData.nom} a été ajouté.`
+        title: "✓ Utilisateur créé",
+        description: `${formData.prenom} ${formData.nom} a été ajouté avec succès. Mot de passe par défaut: 123456`
       });
     }
     
@@ -108,11 +139,12 @@ const Users = () => {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ?")) {
+    const user = users.find(u => u.id === id);
+    if (confirm(`Êtes-vous sûr de vouloir supprimer l'utilisateur ${user?.prenom} ${user?.nom} ? Cette action est irréversible.`)) {
       deleteUser(id);
       toast({
-        title: "Utilisateur supprimé",
-        description: "L'utilisateur a été supprimé avec succès."
+        title: "✓ Utilisateur supprimé",
+        description: `${user?.prenom} ${user?.nom} a été supprimé avec succès.`
       });
     }
   };

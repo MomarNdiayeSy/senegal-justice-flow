@@ -7,14 +7,16 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { User, Mail, Phone, Building2, Briefcase, Edit2, Save, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { User, Mail, Phone, Building2, Briefcase, Edit2, Save, X, Clock, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useApp } from "@/contexts/AppContext";
 import DashboardLayout from "@/components/DashboardLayout";
 
 const Profile = () => {
-  const { currentUser } = useApp();
+  const { currentUser, updateUser, logs } = useApp();
   const [isEditing, setIsEditing] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState(currentUser?.photo || "");
   const [formData, setFormData] = useState({
     nom: currentUser?.nom || "",
     prenom: currentUser?.prenom || "",
@@ -22,9 +24,18 @@ const Profile = () => {
     telephone: currentUser?.telephone || "",
     tribunal: currentUser?.tribunal || "",
     role: currentUser?.role || "",
+    photo: currentUser?.photo || "",
   });
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Get user's connection logs
+  const userLogs = logs
+    .filter(log => 
+      log.userId === currentUser?.id && 
+      (log.action === "Connexion" || log.action === "Déconnexion")
+    )
+    .slice(0, 5); // Last 5 connections
 
   if (!currentUser) {
     navigate("/auth");
@@ -32,11 +43,36 @@ const Profile = () => {
   }
 
   const handleSave = () => {
+    if (!currentUser) return;
+    
+    // Update user with new data
+    updateUser(currentUser.id, {
+      nom: formData.nom,
+      prenom: formData.prenom,
+      email: formData.email,
+      telephone: formData.telephone,
+      tribunal: formData.tribunal,
+      photo: photoUrl
+    });
+    
     toast({
-      title: "Profil mis à jour",
+      title: "✓ Profil mis à jour",
       description: "Vos informations ont été enregistrées avec succès.",
     });
     setIsEditing(false);
+  };
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // In production, upload to server
+      // For now, create a local URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleCancel = () => {
@@ -47,7 +83,9 @@ const Profile = () => {
       telephone: currentUser?.telephone || "",
       tribunal: currentUser?.tribunal || "",
       role: currentUser?.role || "",
+      photo: currentUser?.photo || "",
     });
+    setPhotoUrl(currentUser?.photo || "");
     setIsEditing(false);
   };
 
@@ -78,12 +116,29 @@ const Profile = () => {
           <Card className="shadow-elegant">
             <CardHeader className="text-center">
               <div className="flex justify-center mb-6">
-                <Avatar className="w-32 h-32 border-4 border-primary shadow-lg">
-                  <AvatarImage src={currentUser?.photo} alt={`${currentUser?.prenom} ${currentUser?.nom}`} />
-                  <AvatarFallback className="text-4xl bg-primary text-primary-foreground">
-                    {getInitials()}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="relative group">
+                  <Avatar className="w-32 h-32 border-4 border-primary shadow-lg">
+                    <AvatarImage src={photoUrl || currentUser?.photo} alt={`${currentUser?.prenom} ${currentUser?.nom}`} />
+                    <AvatarFallback className="text-4xl bg-primary text-primary-foreground">
+                      {getInitials()}
+                    </AvatarFallback>
+                  </Avatar>
+                  {isEditing && (
+                    <label 
+                      htmlFor="photo-upload" 
+                      className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full cursor-pointer opacity-0 group-hover:opacity-100 transition-smooth"
+                    >
+                      <Edit2 className="w-8 h-8 text-white" />
+                      <input
+                        id="photo-upload"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handlePhotoChange}
+                      />
+                    </label>
+                  )}
+                </div>
               </div>
               <CardTitle className="text-3xl font-bold text-primary">
                 {currentUser?.prenom} {currentUser?.nom}
@@ -199,6 +254,73 @@ const Profile = () => {
                     className="h-11 bg-muted"
                   />
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Security & Activity Section */}
+          <Card className="shadow-elegant mt-6">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <Shield className="w-6 h-6 text-primary" />
+                <div>
+                  <CardTitle className="text-xl">Sécurité & Activité</CardTitle>
+                  <CardDescription>Historique de vos connexions récentes</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Clock className="w-5 h-5 text-primary" />
+                    <div>
+                      <p className="font-medium">Dernier accès</p>
+                      <p className="text-sm text-muted-foreground">
+                        {currentUser?.dernierAcces 
+                          ? new Date(currentUser.dernierAcces).toLocaleString("fr-FR", {
+                              day: "2-digit",
+                              month: "long",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit"
+                            })
+                          : "Jamais connecté"}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant="outline">Actif</Badge>
+                </div>
+
+                {userLogs.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-sm text-muted-foreground">Historique récent</h4>
+                    {userLogs.map((log) => (
+                      <div 
+                        key={log.id} 
+                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/30 transition-smooth"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-2 h-2 rounded-full ${
+                            log.action === "Connexion" ? "bg-green-500" : "bg-gray-400"
+                          }`} />
+                          <div>
+                            <p className="text-sm font-medium">{log.action}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(log.date).toLocaleString("fr-FR", {
+                                day: "2-digit",
+                                month: "short",
+                                hour: "2-digit",
+                                minute: "2-digit"
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="text-xs font-mono text-muted-foreground">{log.ipAddress}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
