@@ -1,43 +1,46 @@
-import DashboardLayout from "@/components/DashboardLayout";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useApp } from "@/contexts/AppContext";
-import AdminDashboard from "@/components/dashboards/AdminDashboard";
-import GreffierDashboard from "@/components/dashboards/GreffierDashboard";
-import JugeDashboard from "@/components/dashboards/JugeDashboard";
-import ProcureurDashboard from "@/components/dashboards/ProcureurDashboard";
-import AvocatDashboard from "@/components/dashboards/AvocatDashboard";
-import JusticiableDashboard from "@/components/dashboards/JusticiableDashboard";
 
 const Dashboard = () => {
   const { currentUser } = useApp();
+  const navigate = useNavigate();
 
-  // Afficher le dashboard correspondant au rôle de l'utilisateur
-  const renderDashboard = () => {
+  useEffect(() => {
     if (!currentUser) {
-      return <div className="text-center py-12">Veuillez vous connecter pour accéder au tableau de bord</div>;
+      navigate("/auth");
+      return;
     }
 
+    // Rediriger vers le dashboard spécifique au rôle
     switch (currentUser.role) {
       case "admin":
-        return <AdminDashboard />;
+        navigate("/admin/dashboard");
+        break;
       case "greffier":
-        return <GreffierDashboard />;
+        navigate("/greffier/dashboard");
+        break;
       case "juge":
-        return <JugeDashboard />;
+        navigate("/juge/dashboard");
+        break;
       case "procureur":
-        return <ProcureurDashboard />;
+        navigate("/procureur/dashboard");
+        break;
       case "avocat":
-        return <AvocatDashboard />;
+        navigate("/avocat/dashboard");
+        break;
       case "justiciable":
-        return <JusticiableDashboard />;
+        navigate("/justiciable/dashboard");
+        break;
       default:
-        return <GreffierDashboard />;
+        navigate("/greffier/dashboard");
     }
-  };
+  }, [currentUser, navigate]);
 
   return (
-    <DashboardLayout>
-      {renderDashboard()}
-    </DashboardLayout>
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+    </div>
   );
 };
 

@@ -42,19 +42,23 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
   // Menu dynamique selon le rôle
   const getMenuItems = () => {
+    if (!currentUser) return [];
+
+    const roleBasePath = `/${currentUser.role}/dashboard`;
+    
     const baseItems = [
-      { icon: Calendar, label: "Audiences", path: "/dashboard", roles: ["admin", "greffier", "juge", "procureur", "avocat"] },
+      { icon: Calendar, label: "Tableau de bord", path: roleBasePath, roles: ["admin", "greffier", "juge", "procureur", "avocat", "justiciable"] },
       { icon: FileText, label: "Dossiers", path: "/dashboard/dossiers", roles: ["admin", "greffier", "juge", "procureur", "avocat"] },
       { icon: Bell, label: "Notifications", path: "/dashboard/notifications", roles: ["admin", "greffier", "juge", "procureur", "avocat", "justiciable"] },
-      { icon: BarChart3, label: "Statistiques", path: "/dashboard/stats", roles: ["admin", "greffier", "juge", "procureur"] },
-      { icon: Users, label: "Utilisateurs", path: "/dashboard/users", roles: ["admin"] },
-      { icon: Shield, label: "Audit", path: "/dashboard/audit", roles: ["admin"] },
+      { icon: BarChart3, label: "Statistiques", path: "/admin/stats", roles: ["admin"] },
+      { icon: Users, label: "Utilisateurs", path: "/admin/users", roles: ["admin"] },
+      { icon: Shield, label: "Audit", path: "/admin/audit", roles: ["admin"] },
       { icon: Monitor, label: "Affichage public", path: "/public-display", roles: ["admin", "greffier", "juge", "procureur", "avocat", "justiciable"] },
     ];
 
     // Filtrer les éléments du menu selon le rôle de l'utilisateur
     return baseItems.filter(item => 
-      !currentUser || item.roles.includes(currentUser.role)
+      item.roles.includes(currentUser.role)
     );
   };
 

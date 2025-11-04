@@ -8,15 +8,35 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
-import Stats from "./pages/Stats";
 import PublicDisplay from "./pages/PublicDisplay";
-import Users from "./pages/Users";
-import Dossiers from "./pages/Dossiers";
-import Notifications from "./pages/Notifications";
-import Audit from "./pages/Audit";
-import Settings from "./pages/Settings";
-import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+
+// Admin pages
+import AdminDashboard from "./pages/admin/Dashboard";
+import AdminUsers from "./pages/admin/Users";
+import AdminAudit from "./pages/admin/Audit";
+import AdminStats from "./pages/admin/Stats";
+
+// Greffier pages
+import GreffierDashboard from "./pages/greffier/Dashboard";
+
+// Juge pages
+import JugeDashboard from "./pages/juge/Dashboard";
+
+// Procureur pages
+import ProcureurDashboard from "./pages/procureur/Dashboard";
+
+// Avocat pages
+import AvocatDashboard from "./pages/avocat/Dashboard";
+
+// Justiciable pages
+import JusticiableDashboard from "./pages/justiciable/Dashboard";
+
+// Common pages
+import CommonDossiers from "./pages/common/Dossiers";
+import CommonNotifications from "./pages/common/Notifications";
+import CommonProfile from "./pages/common/Profile";
+import CommonSettings from "./pages/common/Settings";
 
 const queryClient = new QueryClient();
 
@@ -32,45 +52,89 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/public-display" element={<PublicDisplay />} />
             
-            {/* Routes protégées */}
+            {/* Route principale dashboard (redirige selon le rôle) */}
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />
               </ProtectedRoute>
             } />
-            <Route path="/dashboard/stats" element={
-              <ProtectedRoute>
-                <Stats />
-              </ProtectedRoute>
-            } />
-            <Route path="/dashboard/users" element={
+
+            {/* Routes Admin */}
+            <Route path="/admin/dashboard" element={
               <ProtectedRoute allowedRoles={["admin"]}>
-                <Users />
+                <AdminDashboard />
               </ProtectedRoute>
             } />
+            <Route path="/admin/users" element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminUsers />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/audit" element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminAudit />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/stats" element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminStats />
+              </ProtectedRoute>
+            } />
+
+            {/* Routes Greffier */}
+            <Route path="/greffier/dashboard" element={
+              <ProtectedRoute allowedRoles={["greffier"]}>
+                <GreffierDashboard />
+              </ProtectedRoute>
+            } />
+
+            {/* Routes Juge */}
+            <Route path="/juge/dashboard" element={
+              <ProtectedRoute allowedRoles={["juge"]}>
+                <JugeDashboard />
+              </ProtectedRoute>
+            } />
+
+            {/* Routes Procureur */}
+            <Route path="/procureur/dashboard" element={
+              <ProtectedRoute allowedRoles={["procureur"]}>
+                <ProcureurDashboard />
+              </ProtectedRoute>
+            } />
+
+            {/* Routes Avocat */}
+            <Route path="/avocat/dashboard" element={
+              <ProtectedRoute allowedRoles={["avocat"]}>
+                <AvocatDashboard />
+              </ProtectedRoute>
+            } />
+
+            {/* Routes Justiciable */}
+            <Route path="/justiciable/dashboard" element={
+              <ProtectedRoute allowedRoles={["justiciable"]}>
+                <JusticiableDashboard />
+              </ProtectedRoute>
+            } />
+
+            {/* Routes communes */}
             <Route path="/dashboard/dossiers" element={
               <ProtectedRoute>
-                <Dossiers />
+                <CommonDossiers />
               </ProtectedRoute>
             } />
             <Route path="/dashboard/notifications" element={
               <ProtectedRoute>
-                <Notifications />
-              </ProtectedRoute>
-            } />
-            <Route path="/dashboard/audit" element={
-              <ProtectedRoute allowedRoles={["admin"]}>
-                <Audit />
-              </ProtectedRoute>
-            } />
-            <Route path="/dashboard/settings" element={
-              <ProtectedRoute>
-                <Settings />
+                <CommonNotifications />
               </ProtectedRoute>
             } />
             <Route path="/dashboard/profile" element={
               <ProtectedRoute>
-                <Profile />
+                <CommonProfile />
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/settings" element={
+              <ProtectedRoute>
+                <CommonSettings />
               </ProtectedRoute>
             } />
             
