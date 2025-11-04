@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -32,11 +32,12 @@ const Auth = () => {
   const { toast } = useToast();
   const { users, addUser, setCurrentUser, login, currentUser } = useApp();
 
-  // Rediriger si déjà connecté
-  if (currentUser) {
-    navigate("/dashboard");
-    return null;
-  }
+  // Rediriger si déjà connecté (dans useEffect pour éviter le warning React)
+  useEffect(() => {
+    if (currentUser) {
+      navigate("/dashboard");
+    }
+  }, [currentUser, navigate]);
 
   const roles = [
     { value: "admin", label: "Administrateur" },

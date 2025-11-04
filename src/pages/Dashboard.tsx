@@ -10,18 +10,11 @@ import JusticiableDashboard from "@/components/dashboards/JusticiableDashboard";
 const Dashboard = () => {
   const { currentUser } = useApp();
 
-  // Debug: afficher les informations de l'utilisateur
-  console.log('🔍 Dashboard - Utilisateur connecté:', currentUser);
-  console.log('🔍 Dashboard - Rôle:', currentUser?.role);
-
   // Afficher le dashboard correspondant au rôle de l'utilisateur
   const renderDashboard = () => {
     if (!currentUser) {
-      console.log('❌ Dashboard - Pas d\'utilisateur connecté');
       return <div className="text-center py-12">Veuillez vous connecter pour accéder au tableau de bord</div>;
     }
-
-    console.log('✅ Dashboard - Rendu du dashboard pour le rôle:', currentUser.role);
 
     switch (currentUser.role) {
       case "admin":

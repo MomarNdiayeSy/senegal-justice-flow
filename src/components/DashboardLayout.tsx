@@ -40,15 +40,25 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     n => !n.lue && (!currentUser || n.destinataireId === currentUser.id)
   ).length;
 
-  const menuItems = [
-    { icon: Calendar, label: "Audiences", path: "/dashboard" },
-    { icon: FileText, label: "Dossiers", path: "/dashboard/dossiers" },
-    { icon: Bell, label: "Notifications", path: "/dashboard/notifications" },
-    { icon: BarChart3, label: "Statistiques", path: "/dashboard/stats" },
-    { icon: Users, label: "Utilisateurs", path: "/dashboard/users" },
-    { icon: Shield, label: "Audit", path: "/dashboard/audit" },
-    { icon: Monitor, label: "Affichage public", path: "/public-display" },
-  ];
+  // Menu dynamique selon le rôle
+  const getMenuItems = () => {
+    const baseItems = [
+      { icon: Calendar, label: "Audiences", path: "/dashboard", roles: ["admin", "greffier", "juge", "procureur", "avocat"] },
+      { icon: FileText, label: "Dossiers", path: "/dashboard/dossiers", roles: ["admin", "greffier", "juge", "procureur", "avocat"] },
+      { icon: Bell, label: "Notifications", path: "/dashboard/notifications", roles: ["admin", "greffier", "juge", "procureur", "avocat", "justiciable"] },
+      { icon: BarChart3, label: "Statistiques", path: "/dashboard/stats", roles: ["admin", "greffier", "juge", "procureur"] },
+      { icon: Users, label: "Utilisateurs", path: "/dashboard/users", roles: ["admin"] },
+      { icon: Shield, label: "Audit", path: "/dashboard/audit", roles: ["admin"] },
+      { icon: Monitor, label: "Affichage public", path: "/public-display", roles: ["admin", "greffier", "juge", "procureur", "avocat", "justiciable"] },
+    ];
+
+    // Filtrer les éléments du menu selon le rôle de l'utilisateur
+    return baseItems.filter(item => 
+      !currentUser || item.roles.includes(currentUser.role)
+    );
+  };
+
+  const menuItems = getMenuItems();
 
   const isActive = (path: string) => location.pathname === path;
 
