@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Calendar, Plus, Clock, AlertCircle, FileText, QrCode } from "lucide-react";
+import { Calendar, Plus, Clock, AlertCircle, FileText, QrCode, Monitor, DoorOpen, Edit } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -155,12 +155,81 @@ const GreffierDashboard = () => {
         </Card>
       </motion.div>
 
+      {/* Actions rapides */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+      >
+        <Card className="shadow-elegant">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Plus className="w-5 h-5 text-primary" />
+              Actions rapides
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Button variant="outline" className="h-auto py-6 flex-col gap-2" onClick={() => navigate('/dashboard')}>
+                <Plus className="w-8 h-8 text-primary" />
+                <span className="font-semibold">Créer une audience</span>
+                <span className="text-xs text-muted-foreground">Planifier une nouvelle audience</span>
+              </Button>
+              <Button variant="outline" className="h-auto py-6 flex-col gap-2" onClick={() => navigate('/dossiers')}>
+                <FileText className="w-8 h-8 text-primary" />
+                <span className="font-semibold">Gérer les dossiers</span>
+                <span className="text-xs text-muted-foreground">Consulter et modifier</span>
+              </Button>
+              <Button variant="outline" className="h-auto py-6 flex-col gap-2" onClick={() => navigate('/public-display')}>
+                <Monitor className="w-8 h-8 text-primary" />
+                <span className="font-semibold">Affichage numérique</span>
+                <span className="text-xs text-muted-foreground">Tableau des audiences</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Gestion des salles */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6 }}
+      >
+        <Card className="shadow-elegant">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DoorOpen className="w-5 h-5 text-primary" />
+              Gestion des salles et horaires
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {["Salle 1", "Salle 2", "Salle 3", "Salle 4"].map((salle) => {
+                const audiencesSalle = audiences.filter(a => a.salle === salle && a.date === today);
+                return (
+                  <div key={salle} className="p-4 rounded-lg border bg-card hover:shadow-md transition-smooth">
+                    <h3 className="font-bold mb-2">{salle}</h3>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      {audiencesSalle.length} audience{audiencesSalle.length > 1 ? 's' : ''} aujourd'hui
+                    </p>
+                    <Badge className={audiencesSalle.length > 0 ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}>
+                      {audiencesSalle.length > 0 ? "Occupée" : "Disponible"}
+                    </Badge>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
       {/* Alertes */}
       {audiencesReportees.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: 0.7 }}
         >
           <Card className="shadow-elegant border-amber-200">
             <CardHeader>
@@ -172,9 +241,14 @@ const GreffierDashboard = () => {
             <CardContent>
               <div className="space-y-2">
                 {audiencesReportees.slice(0, 3).map((audience) => (
-                  <div key={audience.id} className="p-3 rounded-lg bg-amber-50 text-amber-900">
-                    <p className="font-medium">{audience.numero} - {audience.parties}</p>
-                    <p className="text-sm">Initialement prévue le {new Date(audience.date).toLocaleDateString('fr-FR')}</p>
+                  <div key={audience.id} className="p-3 rounded-lg bg-amber-50 text-amber-900 flex items-start justify-between">
+                    <div>
+                      <p className="font-medium">{audience.numero} - {audience.parties}</p>
+                      <p className="text-sm">Initialement prévue le {new Date(audience.date).toLocaleDateString('fr-FR')}</p>
+                    </div>
+                    <Button size="sm" variant="ghost">
+                      <Edit className="w-4 h-4" />
+                    </Button>
                   </div>
                 ))}
               </div>

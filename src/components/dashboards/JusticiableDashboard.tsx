@@ -243,6 +243,35 @@ const JusticiableDashboard = () => {
               </Card>
             </motion.div>
           )}
+
+          {/* Historique des décisions */}
+          {monAudience && monAudience.statut === "terminee" && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+            >
+              <Card className="shadow-elegant border-green-200">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-green-700">
+                    <CheckCircle className="w-5 h-5" />
+                    Décision rendue
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="p-4 rounded-lg bg-green-50">
+                    <p className="font-semibold text-green-900 mb-2">Affaire clôturée</p>
+                    <p className="text-sm text-green-800">
+                      La décision a été rendue le {new Date(monAudience.date).toLocaleDateString('fr-FR')}.
+                    </p>
+                    <p className="text-sm text-green-800 mt-2">
+                      Pour obtenir une copie de la décision, veuillez contacter le greffe du tribunal.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
         </>
       )}
     </div>

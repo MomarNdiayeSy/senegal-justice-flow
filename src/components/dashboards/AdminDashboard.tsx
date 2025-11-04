@@ -1,11 +1,15 @@
 import { motion } from "framer-motion";
-import { Users, Calendar, Shield, Activity, AlertTriangle, TrendingUp } from "lucide-react";
+import { Users, Calendar, Shield, Activity, AlertTriangle, TrendingUp, Settings, BarChart3, Building2, UserPlus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useApp } from "@/contexts/AppContext";
+import { useNavigate } from "react-router-dom";
 
 const AdminDashboard = () => {
   const { users, audiences, logs } = useApp();
+  const navigate = useNavigate();
 
   const stats = [
     {
@@ -58,7 +62,16 @@ const AdminDashboard = () => {
           <h1 className="text-3xl font-bold text-primary">Administration Générale</h1>
           <p className="text-muted-foreground mt-1">Gestion et supervision du système e-Justice</p>
         </div>
-        <Shield className="w-12 h-12 text-primary" />
+        <div className="flex gap-2">
+          <Button className="shadow-gold hover:scale-105 transition-smooth" onClick={() => navigate('/users')}>
+            <UserPlus className="w-4 h-4 mr-2" />
+            Gérer les utilisateurs
+          </Button>
+          <Button variant="outline" className="hover:scale-105 transition-smooth" onClick={() => navigate('/settings')}>
+            <Settings className="w-4 h-4 mr-2" />
+            Paramètres
+          </Button>
+        </div>
       </motion.div>
 
       {/* Statistiques principales */}
@@ -118,11 +131,82 @@ const AdminDashboard = () => {
         </Card>
       </motion.div>
 
-      {/* Activité récente */}
+      {/* Gestion Multi-Tribunaux */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
+      >
+        <Card className="shadow-elegant">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building2 className="w-5 h-5 text-primary" />
+              Gestion Multi-Tribunaux
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-4 rounded-lg border bg-card hover:shadow-md transition-smooth cursor-pointer">
+                <h3 className="font-bold text-lg mb-2">Tribunal de Dakar</h3>
+                <p className="text-sm text-muted-foreground mb-3">12 audiences aujourd'hui</p>
+                <div className="flex gap-2">
+                  <Badge className="bg-green-100 text-green-700">Opérationnel</Badge>
+                </div>
+              </div>
+              <div className="p-4 rounded-lg border bg-card hover:shadow-md transition-smooth cursor-pointer">
+                <h3 className="font-bold text-lg mb-2">Tribunal de Thiès</h3>
+                <p className="text-sm text-muted-foreground mb-3">8 audiences aujourd'hui</p>
+                <div className="flex gap-2">
+                  <Badge className="bg-green-100 text-green-700">Opérationnel</Badge>
+                </div>
+              </div>
+              <div className="p-4 rounded-lg border bg-card hover:shadow-md transition-smooth cursor-pointer">
+                <h3 className="font-bold text-lg mb-2">Tribunal de Saint-Louis</h3>
+                <p className="text-sm text-muted-foreground mb-3">5 audiences aujourd'hui</p>
+                <div className="flex gap-2">
+                  <Badge className="bg-green-100 text-green-700">Opérationnel</Badge>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Rapports et Analytics */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6 }}
+      >
+        <Card className="shadow-elegant">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-primary" />
+              Rapports et Analytics
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Button variant="outline" className="h-auto py-6 flex-col gap-2" onClick={() => navigate('/stats')}>
+                <BarChart3 className="w-8 h-8 text-primary" />
+                <span className="font-semibold">Statistiques générales</span>
+                <span className="text-xs text-muted-foreground">Vue d'ensemble du système</span>
+              </Button>
+              <Button variant="outline" className="h-auto py-6 flex-col gap-2" onClick={() => navigate('/audit')}>
+                <Shield className="w-8 h-8 text-primary" />
+                <span className="font-semibold">Logs de sécurité</span>
+                <span className="text-xs text-muted-foreground">Audit et traçabilité</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Activité récente */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.7 }}
       >
         <Card className="shadow-elegant">
           <CardHeader>

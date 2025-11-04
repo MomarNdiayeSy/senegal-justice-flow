@@ -111,12 +111,38 @@ const AvocatDashboard = () => {
         ))}
       </div>
 
+      {/* Gestion des documents */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+      >
+        <Card className="shadow-elegant border-purple-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-purple-700">
+              <Upload className="w-5 h-5" />
+              Téléversement de documents
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="border-2 border-dashed border-purple-300 rounded-lg p-8 text-center bg-purple-50/50 hover:bg-purple-50 transition-smooth cursor-pointer">
+              <Upload className="w-12 h-12 text-purple-600 mx-auto mb-3" />
+              <p className="font-semibold text-purple-900 mb-1">Déposer vos pièces jointes</p>
+              <p className="text-sm text-purple-700">Glissez-déposez vos fichiers ou cliquez pour parcourir</p>
+              <Button className="mt-4 bg-purple-600 hover:bg-purple-700">
+                Parcourir les fichiers
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
       {/* Audiences à venir */}
       {audiencesPrevues.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
+          transition={{ delay: 0.5 }}
         >
           <Card className="shadow-elegant border-blue-200">
             <CardHeader>
@@ -154,7 +180,7 @@ const AvocatDashboard = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
+        transition={{ delay: 0.6 }}
       >
         <Card className="shadow-elegant">
           <CardHeader>

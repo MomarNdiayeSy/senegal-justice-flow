@@ -1,12 +1,15 @@
 import { motion } from "framer-motion";
-import { Scale, Calendar, FileText, CheckCircle, Clock, TrendingUp } from "lucide-react";
+import { Scale, Calendar, FileText, CheckCircle, Clock, TrendingUp, PenTool, History, Folder } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import { useApp } from "@/contexts/AppContext";
+import { useNavigate } from "react-router-dom";
 
 const JugeDashboard = () => {
   const { audiences, dossiers, currentUser, users } = useApp();
+  const navigate = useNavigate();
 
   const mesAudiences = audiences.filter(a => a.jugeId === currentUser?.id);
   const audiencesTerminees = mesAudiences.filter(a => a.statut === "terminee");
@@ -143,11 +146,89 @@ const JugeDashboard = () => {
         </Card>
       </motion.div>
 
-      {/* Mes audiences */}
+      {/* Actions judiciaires */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
+      >
+        <Card className="shadow-elegant">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <PenTool className="w-5 h-5 text-primary" />
+              Actions judiciaires
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Button variant="outline" className="h-auto py-6 flex-col gap-2">
+                <PenTool className="w-8 h-8 text-primary" />
+                <span className="font-semibold">Rédiger une décision</span>
+                <span className="text-xs text-muted-foreground">Nouvelle décision judiciaire</span>
+              </Button>
+              <Button variant="outline" className="h-auto py-6 flex-col gap-2" onClick={() => navigate('/dossiers')}>
+                <Folder className="w-8 h-8 text-primary" />
+                <span className="font-semibold">Dossiers en cours</span>
+                <span className="text-xs text-muted-foreground">Consulter les affaires</span>
+              </Button>
+              <Button variant="outline" className="h-auto py-6 flex-col gap-2">
+                <History className="w-8 h-8 text-primary" />
+                <span className="font-semibold">Historique</span>
+                <span className="text-xs text-muted-foreground">Affaires terminées</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Planning personnel */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6 }}
+      >
+        <Card className="shadow-elegant">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-primary" />
+              Mon planning personnel
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi"].map((jour, index) => {
+                const date = new Date();
+                date.setDate(date.getDate() + index);
+                const dateStr = date.toISOString().split('T')[0];
+                const audiencesJour = mesAudiences.filter(a => a.date === dateStr);
+                return (
+                  <div key={jour} className="p-3 rounded-lg border bg-card hover:shadow-md transition-smooth">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="font-semibold">{jour} {date.getDate()}/{date.getMonth() + 1}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {audiencesJour.length} audience{audiencesJour.length > 1 ? 's' : ''}
+                        </p>
+                      </div>
+                      {audiencesJour.length > 0 && (
+                        <Badge className="bg-blue-100 text-blue-700">
+                          {audiencesJour[0].heure}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Mes audiences */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.7 }}
       >
         <Card className="shadow-elegant">
           <CardHeader>
@@ -184,6 +265,9 @@ const JugeDashboard = () => {
                             </p>
                           )}
                         </div>
+                        <Button size="sm" variant="outline">
+                          Consulter
+                        </Button>
                       </div>
                     </div>
                   );

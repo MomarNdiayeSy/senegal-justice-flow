@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
-import { Scale, FileText, Calendar, Clock, AlertCircle, CheckCircle } from "lucide-react";
+import { Scale, FileText, Calendar, Clock, AlertCircle, CheckCircle, ScrollText, Bell } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useApp } from "@/contexts/AppContext";
 
 const ProcureurDashboard = () => {
@@ -147,28 +148,67 @@ const ProcureurDashboard = () => {
         </Card>
       </motion.div>
 
-      {/* Alertes de report */}
+      {/* Actions du Parquet */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+      >
+        <Card className="shadow-elegant">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ScrollText className="w-5 h-5 text-primary" />
+              Actions du Ministère Public
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Button variant="outline" className="h-auto py-6 flex-col gap-2">
+                <ScrollText className="w-8 h-8 text-primary" />
+                <span className="font-semibold">Rédiger un réquisitoire</span>
+                <span className="text-xs text-muted-foreground">Nouvelle demande du parquet</span>
+              </Button>
+              <Button variant="outline" className="h-auto py-6 flex-col gap-2">
+                <FileText className="w-8 h-8 text-primary" />
+                <span className="font-semibold">Consulter les réquisitoires</span>
+                <span className="text-xs text-muted-foreground">Accès rapide aux documents</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Notifications de reports */}
       {audiencesAjournees.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: 0.6 }}
         >
           <Card className="shadow-elegant border-orange-200">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-orange-700">
-                <AlertCircle className="w-5 h-5" />
-                Audiences ajournées
+                <Bell className="w-5 h-5" />
+                Notifications de reports
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                {audiencesAjournees.slice(0, 3).map((audience) => (
-                  <div key={audience.id} className="p-3 rounded-lg bg-orange-50 text-orange-900">
-                    <p className="font-medium">{audience.numero} - {audience.parties}</p>
-                    <p className="text-sm">Initialement prévue le {new Date(audience.date).toLocaleDateString('fr-FR')} à {audience.heure}</p>
-                  </div>
-                ))}
+              <div className="space-y-3">
+                {audiencesAjournees.slice(0, 3).map((audience) => {
+                  const juge = users.find(u => u.id === audience.jugeId);
+                  return (
+                    <div key={audience.id} className="p-4 rounded-lg bg-orange-50 text-orange-900 border border-orange-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <p className="font-medium mb-1">{audience.numero} - {audience.parties}</p>
+                          <p className="text-sm mb-1">Date initiale: {new Date(audience.date).toLocaleDateString('fr-FR')} à {audience.heure}</p>
+                          <p className="text-sm">Juge: {juge?.prenom} {juge?.nom}</p>
+                        </div>
+                        <Badge className="bg-orange-600 text-white">Ajournée</Badge>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
