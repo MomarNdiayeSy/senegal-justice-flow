@@ -48,6 +48,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     
     const baseItems = [
       { icon: Calendar, label: "Tableau de bord", path: roleBasePath, roles: ["admin", "greffier", "juge", "procureur", "avocat", "justiciable"] },
+      { icon: Calendar, label: "Audiences", path: "/dashboard/audiences", roles: ["admin", "greffier", "juge", "procureur", "avocat", "justiciable"] },
       { icon: FileText, label: "Dossiers", path: "/dashboard/dossiers", roles: ["admin", "greffier", "juge", "procureur", "avocat"] },
       { icon: Bell, label: "Notifications", path: "/dashboard/notifications", roles: ["admin", "greffier", "juge", "procureur", "avocat", "justiciable"] },
       { icon: BarChart3, label: "Statistiques", path: "/admin/stats", roles: ["admin"] },

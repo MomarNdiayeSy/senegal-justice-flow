@@ -33,6 +33,7 @@ import AvocatDashboard from "./pages/avocat/Dashboard";
 import JusticiableDashboard from "./pages/justiciable/Dashboard";
 
 // Common pages
+import CommonAudiences from "./pages/common/Audiences";
 import CommonDossiers from "./pages/common/Dossiers";
 import CommonNotifications from "./pages/common/Notifications";
 import CommonProfile from "./pages/common/Profile";
@@ -117,6 +118,11 @@ const App = () => (
             } />
 
             {/* Routes communes */}
+            <Route path="/dashboard/audiences" element={
+              <ProtectedRoute>
+                <CommonAudiences />
+              </ProtectedRoute>
+            } />
             <Route path="/dashboard/dossiers" element={
               <ProtectedRoute>
                 <CommonDossiers />
