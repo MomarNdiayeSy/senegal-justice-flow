@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, Check, Clock, Calendar, FileText, AlertCircle, Filter, Users, CheckCircle, XCircle, Send, TrendingUp } from "lucide-react";
+import { Bell, Check, Clock, Calendar, FileText, AlertCircle, Filter, Users, CheckCircle, XCircle, Send, TrendingUp, RefreshCw, Settings as SettingsIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import DashboardLayout from "@/components/DashboardLayout";
 import { useApp } from "@/contexts/AppContext";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface NotificationExtended {
   id: string;
@@ -18,18 +20,25 @@ interface NotificationExtended {
   date: string;
   lue: boolean;
   statut: "envoye" | "echoue" | "en_attente";
+  canal: string;
+  tentatives: number;
+  erreur?: string;
 }
 
 const Notifications = () => {
-  const { notifications, markNotificationAsRead, currentUser, users } = useApp();
+  const { notifications, markNotificationAsRead, retryNotification, currentUser, users } = useApp();
+  const { toast } = useToast();
+  const navigate = useNavigate();
   const [typeFilter, setTypeFilter] = useState<string>("tous");
   const [statusFilter, setStatusFilter] = useState<string>("tous");
   const [roleFilter, setRoleFilter] = useState<string>("tous");
 
-  // Transform notifications with status
+  // Use real notification data
   const notificationsWithStatus: NotificationExtended[] = notifications.map(n => ({
     ...n,
-    statut: Math.random() > 0.1 ? "envoye" : Math.random() > 0.5 ? "en_attente" : "echoue"
+    canal: n.canal,
+    tentatives: n.tentatives,
+    erreur: n.erreur
   } as NotificationExtended));
 
   const filteredNotifications = notificationsWithStatus.filter(n => {
@@ -164,12 +173,21 @@ const Notifications = () => {
                     <CardDescription>Gestion et suivi des notifications envoyées</CardDescription>
                   </div>
                 </div>
-                {filteredNotifications.filter(n => !n.lue).length > 0 && (
-                  <Button variant="outline" onClick={handleMarkAllAsRead}>
-                    <Check className="w-4 h-4 mr-2" />
-                    Tout marquer comme lu
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => navigate("/dashboard/notification-preferences")}
+                  >
+                    <SettingsIcon className="w-4 h-4 mr-2" />
+                    Préférences
                   </Button>
-                )}
+                  {filteredNotifications.filter(n => !n.lue).length > 0 && (
+                    <Button variant="outline" onClick={handleMarkAllAsRead}>
+                      <Check className="w-4 h-4 mr-2" />
+                      Tout marquer comme lu
+                    </Button>
+                  )}
+                </div>
               </div>
 
               <Separator />
@@ -290,6 +308,10 @@ const Notifications = () => {
                                 <div className="flex flex-wrap items-center gap-3 text-sm">
                                   {getStatusBadge(notification.statut)}
                                   <Badge variant="outline">{getTypeLabel(notification.type)}</Badge>
+                                  <Badge variant="secondary" className="gap-1">
+                                    <Send className="w-3 h-3" />
+                                    {notification.canal}
+                                  </Badge>
                                   {user && (
                                     <Badge variant="secondary" className="gap-1">
                                       <Users className="w-3 h-3" />
@@ -297,6 +319,47 @@ const Notifications = () => {
                                     </Badge>
                                   )}
                                 </div>
+
+                                {notification.statut === "echoue" && (
+                                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                                    <div className="flex items-start justify-between gap-3">
+                                      <div className="flex-1">
+                                        <p className="text-sm font-medium text-red-800">
+                                          Échec de l'envoi
+                                        </p>
+                                        {notification.erreur && (
+                                          <p className="text-xs text-red-600 mt-1">
+                                            {notification.erreur}
+                                          </p>
+                                        )}
+                                        <p className="text-xs text-red-500 mt-1">
+                                          Tentatives: {notification.tentatives}
+                                        </p>
+                                      </div>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="border-red-300 hover:bg-red-100 shrink-0"
+                                        onClick={() => {
+                                          retryNotification(notification.id);
+                                          toast({
+                                            title: "Re-tentative en cours",
+                                            description: "La notification est en cours de renvoi..."
+                                          });
+                                        }}
+                                      >
+                                        <RefreshCw className="w-3 h-3 mr-1" />
+                                        Réessayer
+                                      </Button>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {notification.statut === "en_attente" && (
+                                  <div className="p-2 bg-orange-50 border border-orange-200 rounded text-xs text-orange-700">
+                                    ⏳ Notification en attente d'envoi...
+                                  </div>
+                                )}
 
                                 <Separator />
 

@@ -36,6 +36,7 @@ import JusticiableDashboard from "./pages/justiciable/Dashboard";
 import CommonAudiences from "./pages/common/Audiences";
 import CommonDossiers from "./pages/common/Dossiers";
 import CommonNotifications from "./pages/common/Notifications";
+import CommonNotificationPreferences from "./pages/common/NotificationPreferences";
 import CommonProfile from "./pages/common/Profile";
 import CommonSettings from "./pages/common/Settings";
 
@@ -131,6 +132,11 @@ const App = () => (
             <Route path="/dashboard/notifications" element={
               <ProtectedRoute>
                 <CommonNotifications />
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/notification-preferences" element={
+              <ProtectedRoute>
+                <CommonNotificationPreferences />
               </ProtectedRoute>
             } />
             <Route path="/dashboard/profile" element={

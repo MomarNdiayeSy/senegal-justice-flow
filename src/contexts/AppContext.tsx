@@ -69,6 +69,21 @@ export interface Dossier {
   }>;
 }
 
+export interface NotificationPreferences {
+  userId: string;
+  canaux: {
+    email: boolean;
+    sms: boolean;
+    whatsapp: boolean;
+  };
+  types: {
+    audience_creee: boolean;
+    audience_reportee: boolean;
+    audience_annulee: boolean;
+    dossier_modifie: boolean;
+  };
+}
+
 export interface Notification {
   id: string;
   type: "audience_creee" | "audience_reportee" | "audience_annulee" | "dossier_modifie";
@@ -78,6 +93,11 @@ export interface Notification {
   destinataireId: string;
   lue: boolean;
   audienceId?: string;
+  statut: "envoye" | "echoue" | "en_attente";
+  canal: "email" | "sms" | "whatsapp";
+  tentatives: number;
+  derniereTentative?: string;
+  erreur?: string;
 }
 
 export interface LogAudit {
@@ -99,6 +119,7 @@ interface AppContextType {
   dossiers: Dossier[];
   notifications: Notification[];
   logs: LogAudit[];
+  notificationPreferences: NotificationPreferences[];
   addUser: (user: Omit<User, "id" | "dateCreation">) => void;
   updateUser: (id: string, data: Partial<User>) => void;
   deleteUser: (id: string) => void;
@@ -109,6 +130,8 @@ interface AppContextType {
   updateDossier: (id: string, data: Partial<Dossier>) => void;
   addNotification: (notification: Omit<Notification, "id" | "date" | "lue">) => void;
   markNotificationAsRead: (id: string) => void;
+  retryNotification: (id: string) => void;
+  updateNotificationPreferences: (userId: string, preferences: Partial<NotificationPreferences>) => void;
   addLog: (log: Omit<LogAudit, "id" | "date" | "ipAddress">) => void;
 }
 
@@ -303,7 +326,33 @@ const mockNotifications: Notification[] = [
     date: new Date().toISOString(),
     destinataireId: "4",
     lue: false,
-    audienceId: "1"
+    audienceId: "1",
+    statut: "envoye",
+    canal: "email",
+    tentatives: 1
+  }
+];
+
+const mockNotificationPreferences: NotificationPreferences[] = [
+  {
+    userId: "1",
+    canaux: { email: true, sms: true, whatsapp: false },
+    types: { audience_creee: true, audience_reportee: true, audience_annulee: true, dossier_modifie: true }
+  },
+  {
+    userId: "2",
+    canaux: { email: true, sms: false, whatsapp: false },
+    types: { audience_creee: true, audience_reportee: true, audience_annulee: true, dossier_modifie: true }
+  },
+  {
+    userId: "3",
+    canaux: { email: true, sms: true, whatsapp: true },
+    types: { audience_creee: true, audience_reportee: true, audience_annulee: true, dossier_modifie: true }
+  },
+  {
+    userId: "4",
+    canaux: { email: true, sms: true, whatsapp: false },
+    types: { audience_creee: true, audience_reportee: true, audience_annulee: true, dossier_modifie: false }
   }
 ];
 
@@ -324,6 +373,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [audiences, setAudiences] = useState<Audience[]>(mockAudiences);
   const [dossiers, setDossiers] = useState<Dossier[]>(mockDossiers);
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+  const [notificationPreferences, setNotificationPreferences] = useState<NotificationPreferences[]>(mockNotificationPreferences);
   const [logs, setLogs] = useState<LogAudit[]>(mockLogs);
 
   // Load from localStorage
@@ -402,7 +452,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         titre: "Nouvelle audience",
         message: `Audience ${audience.numero} programmée pour le ${audience.date} à ${audience.heure}`,
         destinataireId: userId,
-        audienceId: newAudience.id
+        audienceId: newAudience.id,
+        statut: "envoye",
+        canal: "email",
+        tentatives: 1
       });
     });
     
@@ -414,6 +467,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateAudience = (id: string, data: Partial<Audience>) => {
+    const audience = audiences.find(a => a.id === id);
+    const wasRescheduled = audience && data.statut === "reportee" && audience.statut !== "reportee";
+    
     setAudiences(audiences.map(a => {
       if (a.id === id) {
         const updatedAudience = { 
@@ -428,6 +484,23 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             }
           ]
         };
+        
+        // Send notifications if audience was rescheduled
+        if (wasRescheduled && audience) {
+          [audience.jugeId, ...audience.avocatIds, audience.justiciableId].forEach(userId => {
+            addNotification({
+              type: "audience_reportee",
+              titre: "Audience reportée",
+              message: `L'audience ${audience.numero} a été reportée. Nouvelle date: ${data.date || audience.date} à ${data.heure || audience.heure}`,
+              destinataireId: userId,
+              audienceId: id,
+              statut: "envoye",
+              canal: "email",
+              tentatives: 1
+            });
+          });
+        }
+        
         return updatedAudience;
       }
       return a;
@@ -515,6 +588,55 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setNotifications(notifications.map(n => n.id === id ? { ...n, lue: true } : n));
   };
 
+  const retryNotification = (id: string) => {
+    setNotifications(notifications.map(n => {
+      if (n.id === id) {
+        return {
+          ...n,
+          statut: Math.random() > 0.3 ? "envoye" : "echoue",
+          tentatives: n.tentatives + 1,
+          derniereTentative: new Date().toISOString(),
+          erreur: Math.random() > 0.3 ? undefined : "Échec de l'envoi - Service temporairement indisponible"
+        } as Notification;
+      }
+      return n;
+    }));
+    
+    addLog({
+      userId: currentUser?.id || "system",
+      action: "Re-tentative notification",
+      details: `Re-tentative d'envoi de la notification ${id}`
+    });
+  };
+
+  const updateNotificationPreferences = (userId: string, preferences: Partial<NotificationPreferences>) => {
+    const existingPref = notificationPreferences.find(p => p.userId === userId);
+    
+    if (existingPref) {
+      setNotificationPreferences(notificationPreferences.map(p => 
+        p.userId === userId ? { ...p, ...preferences } : p
+      ));
+    } else {
+      const newPref: NotificationPreferences = {
+        userId,
+        canaux: preferences.canaux || { email: true, sms: false, whatsapp: false },
+        types: preferences.types || { 
+          audience_creee: true, 
+          audience_reportee: true, 
+          audience_annulee: true, 
+          dossier_modifie: true 
+        }
+      };
+      setNotificationPreferences([...notificationPreferences, newPref]);
+    }
+    
+    addLog({
+      userId: currentUser?.id || "system",
+      action: "Préférences notifications",
+      details: `Préférences de notification modifiées pour l'utilisateur ${userId}`
+    });
+  };
+
   const addLog = (log: Omit<LogAudit, "id" | "date" | "ipAddress">) => {
     const newLog: LogAudit = {
       ...log,
@@ -586,6 +708,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       audiences,
       dossiers,
       notifications,
+      notificationPreferences,
       logs,
       addUser,
       updateUser,
@@ -597,6 +720,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       updateDossier,
       addNotification,
       markNotificationAsRead,
+      retryNotification,
+      updateNotificationPreferences,
       addLog
     }}>
       {children}
