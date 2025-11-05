@@ -51,8 +51,22 @@ export interface Dossier {
     taille: string;
     dateAjout: string;
     ajoutePar: string;
+    version: number;
+    historique: Array<{
+      version: number;
+      date: string;
+      action: string;
+      userId: string;
+    }>;
   }>;
   audienceId?: string;
+  accessList: string[]; // IDs des utilisateurs ayant accès
+  historique: Array<{
+    date: string;
+    action: string;
+    details: string;
+    userId: string;
+  }>;
 }
 
 export interface Notification {
@@ -255,10 +269,28 @@ const mockDossiers: Dossier[] = [
         type: "application/pdf",
         taille: "2.3 MB",
         dateAjout: "2025-01-10",
-        ajoutePar: "2"
+        ajoutePar: "2",
+        version: 1,
+        historique: [
+          {
+            version: 1,
+            date: "2025-01-10",
+            action: "Version initiale",
+            userId: "2"
+          }
+        ]
       }
     ],
-    audienceId: "1"
+    audienceId: "1",
+    accessList: ["1", "2", "3", "4"],
+    historique: [
+      {
+        date: "2025-01-10",
+        action: "Création du dossier",
+        details: "Dossier créé avec pièce jointe initiale",
+        userId: "2"
+      }
+    ]
   }
 ];
 
@@ -417,11 +449,19 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const addDossier = (dossier: Omit<Dossier, "id" | "dateCreation">) => {
+  const addDossier = (dossier: Omit<Dossier, "id" | "dateCreation" | "historique">) => {
     const newDossier: Dossier = {
       ...dossier,
       id: Date.now().toString(),
-      dateCreation: new Date().toISOString()
+      dateCreation: new Date().toISOString(),
+      historique: [
+        {
+          date: new Date().toISOString(),
+          action: "Création du dossier",
+          details: `Dossier ${dossier.numero} créé`,
+          userId: currentUser?.id || "system"
+        }
+      ]
     };
     setDossiers([...dossiers, newDossier]);
     addLog({
@@ -432,7 +472,28 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateDossier = (id: string, data: Partial<Dossier>) => {
-    setDossiers(dossiers.map(d => d.id === id ? { ...d, ...data } : d));
+    const dossier = dossiers.find(d => d.id === id);
+    
+    setDossiers(dossiers.map(d => {
+      if (d.id === id) {
+        const updatedDossier = { 
+          ...d, 
+          ...data,
+          historique: [
+            ...d.historique,
+            {
+              date: new Date().toISOString(),
+              action: "Modification du dossier",
+              details: `Dossier ${d.numero} modifié`,
+              userId: currentUser?.id || "system"
+            }
+          ]
+        };
+        return updatedDossier;
+      }
+      return d;
+    }));
+    
     addLog({
       userId: currentUser?.id || "system",
       action: "Modification dossier",
