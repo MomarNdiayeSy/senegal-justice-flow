@@ -12,12 +12,44 @@ const PublicDisplay = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(new Date());
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [cachedAudiences, setCachedAudiences] = useState<typeof audiences>([]);
 
-  // Filter today's audiences
+  // Filter today's audiences (utilise cache en mode hors ligne)
   const today = new Date().toDateString();
-  const todayAudiences = audiences.filter(
+  const audiencesSource = isOffline && cachedAudiences.length > 0 ? cachedAudiences : audiences;
+  const todayAudiences = audiencesSource.filter(
     a => new Date(a.date).toDateString() === today
   ).sort((a, b) => a.heure.localeCompare(b.heure));
+
+  // Gestion du mode hors ligne
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
+  // Mise en cache des audiences pour le mode hors ligne
+  useEffect(() => {
+    if (audiences.length > 0) {
+      localStorage.setItem("cached_audiences", JSON.stringify(audiences));
+      localStorage.setItem("cached_users", JSON.stringify(users));
+      setCachedAudiences(audiences);
+    } else {
+      // Charge depuis le cache au démarrage
+      const cached = localStorage.getItem("cached_audiences");
+      if (cached) {
+        setCachedAudiences(JSON.parse(cached));
+      }
+    }
+  }, [audiences, users]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -31,10 +63,15 @@ const PublicDisplay = () => {
   useEffect(() => {
     const refreshInterval = setInterval(() => {
       setLastRefresh(new Date());
+      // En mode hors ligne, on ne rafraîchit pas les données
+      if (!isOffline) {
+        // Ici, dans un cas réel, on déclencherait un refetch des données
+        console.log("Rafraîchissement des données...");
+      }
     }, 30000); // Refresh every 30 seconds
 
     return () => clearInterval(refreshInterval);
-  }, []);
+  }, [isOffline]);
 
   const getStatusBadge = (statut: string) => {
     const variants = {
@@ -54,6 +91,19 @@ const PublicDisplay = () => {
         ? 'bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white' 
         : 'bg-gradient-to-br from-blue-50 via-white to-blue-50 text-slate-900'
     }`}>
+      {/* Mode hors ligne indicator */}
+      {isOffline && (
+        <motion.div
+          initial={{ y: -50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50"
+        >
+          <Badge variant="destructive" className="text-xl px-6 py-3 shadow-2xl animate-pulse">
+            ⚠️ Mode hors ligne - Affichage des données en cache
+          </Badge>
+        </motion.div>
+      )}
+
       {/* Mode Toggle */}
       <motion.div
         initial={{ opacity: 0 }}
@@ -235,14 +285,18 @@ const PublicDisplay = () => {
                           {getStatusBadge(audience.statut)}
                           <motion.div
                             whileHover={{ scale: 1.1, rotate: 5 }}
-                            className="bg-white p-4 rounded-2xl shadow-2xl"
+                            className="bg-white p-4 rounded-2xl shadow-2xl cursor-pointer"
+                            onClick={() => window.open(`/audience-details?id=${audience.id}`, '_blank')}
                           >
                             <QRCodeSVG
-                              value={`${window.location.origin}/public-display?audience=${audience.id}`}
+                              value={`${window.location.origin}/audience-details?id=${audience.id}`}
                               size={140}
                               level="H"
                               includeMargin
                             />
+                            <p className="text-center text-xs text-slate-600 mt-2 font-medium">
+                              Scannez pour<br/>plus de détails
+                            </p>
                           </motion.div>
                         </div>
                       </div>

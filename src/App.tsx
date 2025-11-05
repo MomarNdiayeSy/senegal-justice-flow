@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import PublicDisplay from "./pages/PublicDisplay";
+import AudienceDetails from "./pages/AudienceDetails";
 import NotFound from "./pages/NotFound";
 
 // Admin pages
@@ -53,6 +54,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/public-display" element={<PublicDisplay />} />
+            <Route path="/audience-details" element={<AudienceDetails />} />
             
             {/* Route principale dashboard (redirige selon le rôle) */}
             <Route path="/dashboard" element={
