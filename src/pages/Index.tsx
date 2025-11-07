@@ -2,29 +2,35 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Scale, Monitor, BarChart3, ArrowRight, CheckCircle2, Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Shield } from "lucide-react";
-import heroImage from "@/assets/hero-justice.jpg";
-import iconGestion from "@/assets/icon-gestion.png";
-import iconAffichage from "@/assets/icon-affichage.png";
-import iconStats from "@/assets/icon-stats.png";
+import { Scale, Monitor, BarChart3, ArrowRight, CheckCircle2, Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Shield, Sparkles, Zap, Globe } from "lucide-react";
+import heroImage from "@/assets/hero-modern.jpg";
+import featureDigital from "@/assets/feature-digital.jpg";
+import featureSecure from "@/assets/feature-secure.jpg";
+import featureConnected from "@/assets/feature-connected.jpg";
 
 const Index = () => {
   const navigate = useNavigate();
   const features = [
     {
-      icon: iconGestion,
-      title: "Gestion en ligne des audiences",
-      description: "Planifiez, organisez et suivez toutes vos audiences judiciaires en temps réel avec une interface intuitive."
+      image: featureDigital,
+      icon: Scale,
+      title: "Justice numérique",
+      description: "Planifiez, organisez et suivez toutes vos audiences judiciaires en temps réel avec une interface intuitive et moderne.",
+      color: "from-blue-500 to-cyan-500"
     },
     {
-      icon: iconAffichage,
-      title: "Affichage public numérique",
-      description: "Informez le public avec des écrans numériques modernes affichant les plannings d'audiences en direct."
+      image: featureSecure,
+      icon: Shield,
+      title: "Sécurité maximale",
+      description: "Protection avancée des données sensibles avec cryptage de niveau bancaire et conformité aux normes internationales.",
+      color: "from-purple-500 to-pink-500"
     },
     {
-      icon: iconStats,
-      title: "Statistiques intelligentes",
-      description: "Analysez les performances et optimisez les processus avec des tableaux de bord détaillés."
+      image: featureConnected,
+      icon: Globe,
+      title: "Système connecté",
+      description: "Synchronisation en temps réel entre tous les tribunaux du Sénégal pour une justice plus efficace et transparente.",
+      color: "from-green-500 to-teal-500"
     }
   ];
 
@@ -41,21 +47,36 @@ const Index = () => {
       <motion.header 
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="gradient-hero text-primary-foreground py-4 px-6 shadow-elegant"
+        className="gradient-hero text-primary-foreground py-4 px-6 shadow-elegant backdrop-blur-xl bg-primary/95 sticky top-0 z-50"
       >
         <div className="container mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Scale className="w-10 h-10 text-accent" />
+          <motion.div 
+            className="flex items-center gap-3"
+            whileHover={{ scale: 1.05 }}
+            transition={{ type: "spring", stiffness: 400 }}
+          >
+            <div className="relative">
+              <Scale className="w-10 h-10 text-accent" />
+              <motion.div
+                className="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full"
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
+            </div>
             <div>
-              <h1 className="text-2xl font-bold">e-Justice Sénégal</h1>
+              <h1 className="text-2xl font-bold flex items-center gap-2">
+                e-Justice Sénégal
+                <Sparkles className="w-4 h-4 text-accent" />
+              </h1>
               <p className="text-xs opacity-90">Ministère de la Justice</p>
             </div>
-          </div>
+          </motion.div>
           <Button 
             variant="outline" 
-            className="bg-white/10 border-white/20 hover:bg-white/20 text-white"
+            className="bg-white/10 border-white/20 hover:bg-white/20 text-white hover:scale-105 transition-smooth"
             onClick={() => navigate("/auth")}
           >
+            <Zap className="w-4 h-4 mr-2" />
             Se connecter
           </Button>
         </div>
@@ -155,24 +176,29 @@ const Index = () => {
               transition={{ delay: 0.4 }}
               className="relative"
             >
+              <div className="absolute -inset-4 bg-gradient-to-r from-accent/30 via-primary/30 to-accent/30 rounded-3xl blur-2xl opacity-50 animate-pulse" />
               <motion.div
-                whileHover={{ scale: 1.02 }}
+                whileHover={{ scale: 1.02, rotateY: 5 }}
                 transition={{ type: "spring", stiffness: 300 }}
+                className="relative"
               >
+                <div className="absolute inset-0 bg-gradient-to-br from-accent/20 to-primary/20 rounded-2xl" />
                 <img 
                   src={heroImage} 
                   alt="Justice numérique au Sénégal" 
-                  className="rounded-2xl shadow-elegant w-full"
+                  className="rounded-2xl shadow-elegant w-full relative z-10 ring-2 ring-accent/50"
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-primary/50 to-transparent rounded-2xl" />
               </motion.div>
               <motion.div
-                className="absolute -bottom-6 -right-6 bg-accent text-accent-foreground p-4 rounded-xl shadow-gold"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
+                className="absolute -bottom-6 -right-6 bg-gradient-to-br from-accent to-accent/80 text-accent-foreground p-6 rounded-2xl shadow-gold backdrop-blur-sm border border-white/20"
+                initial={{ scale: 0, rotate: -10 }}
+                animate={{ scale: 1, rotate: 0 }}
                 transition={{ delay: 1.5, type: "spring" }}
+                whileHover={{ scale: 1.1, rotate: 5 }}
               >
-                <div className="text-3xl font-bold">45+</div>
-                <div className="text-sm">Tribunaux</div>
+                <div className="text-4xl font-bold">45+</div>
+                <div className="text-sm font-semibold">Tribunaux connectés</div>
               </motion.div>
             </motion.div>
           </div>
@@ -204,21 +230,47 @@ const Index = () => {
                 whileInView={{ y: 0, opacity: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                whileHover={{ y: -10 }}
+                whileHover={{ y: -15, scale: 1.02 }}
               >
-                <Card className="p-8 h-full hover:shadow-elegant transition-smooth cursor-pointer gradient-card border-0 relative overflow-hidden group">
-                  <div className="absolute inset-0 bg-accent/5 opacity-0 group-hover:opacity-100 transition-smooth" />
-                  <motion.img 
-                    src={feature.icon} 
-                    alt={feature.title}
-                    className="w-20 h-20 mb-6 rounded-xl relative z-10"
-                    whileHover={{ rotate: 5, scale: 1.1 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                  />
-                  <h4 className="text-2xl font-display font-bold mb-4 relative z-10">{feature.title}</h4>
-                  <p className="text-muted-foreground leading-relaxed relative z-10">
-                    {feature.description}
-                  </p>
+                <Card className="h-full hover:shadow-elegant transition-smooth cursor-pointer border-0 relative overflow-hidden group bg-card">
+                  {/* Gradient overlay */}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-10 transition-smooth`} />
+                  
+                  {/* Image with overlay */}
+                  <div className="relative h-48 overflow-hidden">
+                    <motion.img 
+                      src={feature.image} 
+                      alt={feature.title}
+                      className="w-full h-full object-cover"
+                      whileHover={{ scale: 1.1 }}
+                      transition={{ duration: 0.6 }}
+                    />
+                    <div className={`absolute inset-0 bg-gradient-to-b ${feature.color} opacity-60 group-hover:opacity-40 transition-smooth`} />
+                    <motion.div
+                      className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm p-3 rounded-xl shadow-lg"
+                      whileHover={{ scale: 1.1, rotate: 5 }}
+                    >
+                      <feature.icon className="w-8 h-8 text-primary" />
+                    </motion.div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="p-6 relative z-10">
+                    <h4 className="text-2xl font-display font-bold mb-3 group-hover:text-accent transition-smooth">
+                      {feature.title}
+                    </h4>
+                    <p className="text-muted-foreground leading-relaxed">
+                      {feature.description}
+                    </p>
+                    <motion.div
+                      className="mt-4 flex items-center text-accent font-semibold opacity-0 group-hover:opacity-100 transition-smooth"
+                      initial={{ x: -10 }}
+                      whileHover={{ x: 0 }}
+                    >
+                      En savoir plus
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </motion.div>
+                  </div>
                 </Card>
               </motion.div>
             ))}
