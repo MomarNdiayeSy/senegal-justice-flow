@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import PublicDisplay from "./pages/PublicDisplay";
 import AudienceDetails from "./pages/AudienceDetails";
+import Blog from "./pages/Blog";
 import NotFound from "./pages/NotFound";
 
 // Admin pages
@@ -53,6 +54,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/blog" element={<Blog />} />
             <Route path="/public-display" element={<PublicDisplay />} />
             <Route path="/audience-details" element={<AudienceDetails />} />
             

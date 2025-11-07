@@ -36,6 +36,11 @@ const faqs: FAQ[] = [
     keywords: ["audience", "consulter", "voir", "horaire"]
   },
   {
+    question: "Où trouver les actualités ?",
+    answer: "Toutes les actualités et mises à jour de la plateforme sont disponibles dans notre section Blog/Actualités. Vous y trouverez les dernières nouvelles du système judiciaire sénégalais.",
+    keywords: ["actualités", "blog", "nouvelles", "informations"]
+  },
+  {
     question: "Que faire en cas d'audience reportée ?",
     answer: "Les audiences reportées sont automatiquement notifiées par email et SMS aux parties concernées. Vous pouvez consulter le nouveau planning dans votre espace ou sur l'affichage public.",
     keywords: ["reportée", "annulée", "report", "notification"]
@@ -76,7 +81,7 @@ const quickQuestions = [
   "Comment créer un compte ?",
   "Qui peut utiliser e-Justice ?",
   "Comment consulter une audience ?",
-  "Quels tribunaux sont connectés ?"
+  "Où trouver les actualités ?"
 ];
 
 const Chatbot = () => {

@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Scale, Monitor, BarChart3, ArrowRight, CheckCircle2, Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Shield, Sparkles, Zap, Globe } from "lucide-react";
+import { Scale, Monitor, BarChart3, ArrowRight, CheckCircle2, Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Shield, Sparkles, Zap, Globe, Newspaper } from "lucide-react";
 import heroImage from "@/assets/hero-modern.jpg";
 import featureDigital from "@/assets/feature-digital.jpg";
 import featureSecure from "@/assets/feature-secure.jpg";
@@ -79,6 +79,14 @@ const Index = () => {
           >
             <Zap className="w-4 h-4 mr-2" />
             Se connecter
+          </Button>
+          <Button 
+            variant="ghost" 
+            className="text-white hover:bg-white/10"
+            onClick={() => navigate("/blog")}
+          >
+            <Newspaper className="w-4 h-4 mr-2" />
+            Blog
           </Button>
         </div>
       </motion.header>
@@ -399,6 +407,11 @@ const Index = () => {
                 <li>
                   <button onClick={() => navigate("/auth")} className="opacity-80 hover:opacity-100 transition-smooth hover:text-accent">
                     Se connecter
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => navigate("/blog")} className="opacity-80 hover:opacity-100 transition-smooth hover:text-accent">
+                    Actualités
                   </button>
                 </li>
                 <li>
