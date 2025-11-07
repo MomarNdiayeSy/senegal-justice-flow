@@ -75,25 +75,25 @@ const AudienceDetails = () => {
       prevue: { 
         label: "Prévue", 
         icon: "🟢",
-        className: "bg-green-500 text-white",
+        className: "bg-success text-success-foreground",
         message: "Cette audience aura lieu à l'heure prévue."
       },
       en_cours: { 
         label: "En cours", 
         icon: "🟡",
-        className: "bg-yellow-500 text-white animate-pulse",
+        className: "bg-accent text-accent-foreground animate-pulse",
         message: "Cette audience est actuellement en cours."
       },
       reportee: { 
         label: "Reportée", 
         icon: "🔵",
-        className: "bg-blue-500 text-white",
+        className: "bg-primary text-primary-foreground",
         message: "Cette audience a été reportée. Veuillez consulter la nouvelle date."
       },
       terminee: { 
         label: "Terminée", 
         icon: "🔴",
-        className: "bg-red-500 text-white",
+        className: "bg-destructive text-destructive-foreground",
         message: "Cette audience est terminée."
       }
     };
@@ -190,7 +190,7 @@ const AudienceDetails = () => {
               </div>
 
               {/* Info Alert */}
-              <div className="bg-blue-50 border-l-4 border-primary p-4 mb-8 rounded">
+              <div className="bg-primary/10 border-l-4 border-primary p-4 mb-8 rounded">
                 <p className="text-sm text-primary font-medium">
                   ℹ️ {statusInfo.message}
                 </p>
@@ -268,7 +268,7 @@ const AudienceDetails = () => {
                 </h3>
 
                 {juge && (
-                  <Card className="p-4 bg-primary/5">
+                  <Card className="p-4 bg-primary/5 border-primary/20">
                     <p className="text-sm text-muted-foreground mb-1">Juge</p>
                     <p className="text-lg font-semibold text-primary">
                       {juge.prenom} {juge.nom}
@@ -277,7 +277,7 @@ const AudienceDetails = () => {
                 )}
 
                 {procureur && (
-                  <Card className="p-4 bg-accent/5">
+                  <Card className="p-4 bg-accent/5 border-accent/20">
                     <p className="text-sm text-muted-foreground mb-1">Procureur</p>
                     <p className="text-lg font-semibold text-accent">
                       {procureur.prenom} {procureur.nom}
@@ -286,13 +286,13 @@ const AudienceDetails = () => {
                 )}
 
                 {avocats.length > 0 && (
-                  <Card className="p-4 bg-muted/30">
+                  <Card className="p-4 bg-muted/30 border-muted">
                     <p className="text-sm text-muted-foreground mb-2">
                       Avocat{avocats.length > 1 ? 's' : ''}
                     </p>
                     <div className="space-y-1">
                       {avocats.map(avocat => (
-                        <p key={avocat.id} className="text-base font-medium">
+                        <p key={avocat.id} className="text-base font-medium text-foreground">
                           • {avocat.prenom} {avocat.nom}
                         </p>
                       ))}
@@ -309,9 +309,9 @@ const AudienceDetails = () => {
                   </h3>
                   <div className="space-y-2">
                     {audience.historique.slice(-3).reverse().map((event, index) => (
-                      <Card key={index} className="p-3 bg-muted/20">
+                      <Card key={index} className="p-3 bg-muted/20 border-muted">
                         <div className="flex justify-between items-start">
-                          <p className="text-sm">{event.action}</p>
+                          <p className="text-sm text-foreground">{event.action}</p>
                           <p className="text-xs text-muted-foreground">
                             {new Date(event.date).toLocaleString('fr-FR')}
                           </p>

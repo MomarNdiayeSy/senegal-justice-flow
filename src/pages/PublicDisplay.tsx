@@ -75,10 +75,10 @@ const PublicDisplay = () => {
 
   const getStatusBadge = (statut: string) => {
     const variants = {
-      prevue: { label: "🟢 Prévue", className: "bg-green-500 text-white text-2xl px-6 py-3 font-bold" },
-      en_cours: { label: "🟡 En cours", className: "bg-yellow-500 text-white text-2xl px-6 py-3 font-bold animate-pulse" },
-      reportee: { label: "🔵 Reportée", className: "bg-blue-500 text-white text-2xl px-6 py-3 font-bold" },
-      terminee: { label: "🔴 Terminée", className: "bg-red-500 text-white text-2xl px-6 py-3 font-bold" }
+      prevue: { label: "🟢 Prévue", className: "bg-success text-success-foreground text-2xl px-6 py-3 font-bold" },
+      en_cours: { label: "🟡 En cours", className: "bg-accent text-accent-foreground text-2xl px-6 py-3 font-bold animate-pulse" },
+      reportee: { label: "🔵 Reportée", className: "bg-primary text-primary-foreground text-2xl px-6 py-3 font-bold" },
+      terminee: { label: "🔴 Terminée", className: "bg-destructive text-destructive-foreground text-2xl px-6 py-3 font-bold" }
     };
 
     const variant = variants[statut as keyof typeof variants] || variants.prevue;
@@ -86,10 +86,10 @@ const PublicDisplay = () => {
   };
 
   return (
-    <div className={`min-h-screen p-8 transition-all duration-500 ${
+    <div className={`min-h-screen p-8 transition-smooth ${
       isDarkMode 
-        ? 'bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white' 
-        : 'bg-gradient-to-br from-blue-50 via-white to-blue-50 text-slate-900'
+        ? 'bg-background text-foreground' 
+        : 'bg-gradient-to-br from-blue-50 via-white to-blue-50 text-foreground'
     }`}>
       {/* Mode hors ligne indicator */}
       {isOffline && (
@@ -114,7 +114,7 @@ const PublicDisplay = () => {
           onClick={() => setIsDarkMode(!isDarkMode)}
           size="lg"
           className={`rounded-full w-16 h-16 shadow-2xl ${
-            isDarkMode ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-slate-800 hover:bg-slate-900'
+            isDarkMode ? 'bg-accent hover:bg-accent/90' : 'bg-primary hover:bg-primary/90'
           }`}
         >
           {isDarkMode ? <Sun className="w-8 h-8" /> : <Moon className="w-8 h-8" />}
@@ -133,23 +133,23 @@ const PublicDisplay = () => {
               animate={{ rotate: [0, 10, -10, 0] }}
               transition={{ duration: 2, repeat: Infinity, repeatDelay: 5 }}
             >
-              <Scale className={`w-24 h-24 ${isDarkMode ? 'text-yellow-400' : 'text-primary'}`} />
+              <Scale className={`w-24 h-24 ${isDarkMode ? 'text-accent' : 'text-primary'}`} />
             </motion.div>
             <div>
-              <h1 className={`text-7xl font-bold ${isDarkMode ? 'text-white' : 'text-primary'}`}>
+              <h1 className={`text-7xl font-bold ${isDarkMode ? 'text-foreground' : 'text-primary'}`}>
                 e-Justice Sénégal
               </h1>
-              <p className={`text-3xl mt-2 ${isDarkMode ? 'text-yellow-400' : 'text-accent'} font-semibold`}>
+              <p className={`text-3xl mt-2 ${isDarkMode ? 'text-accent' : 'text-accent'} font-semibold`}>
                 Ministère de la Justice
               </p>
             </div>
           </div>
           <div className="text-right">
-            <div className={`flex items-center gap-4 text-5xl font-bold ${isDarkMode ? 'text-yellow-400' : 'text-primary'}`}>
+            <div className={`flex items-center gap-4 text-5xl font-bold ${isDarkMode ? 'text-accent' : 'text-primary'}`}>
               <Clock className="w-14 h-14" />
               {currentTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
             </div>
-            <div className={`flex items-center gap-3 text-2xl mt-3 ${isDarkMode ? 'text-white/80' : 'text-muted-foreground'}`}>
+            <div className={`flex items-center gap-3 text-2xl mt-3 ${isDarkMode ? 'text-muted-foreground' : 'text-muted-foreground'}`}>
               <CalendarIcon className="w-9 h-9" />
               {currentTime.toLocaleDateString('fr-FR', { 
                 weekday: 'long', 
@@ -163,7 +163,7 @@ const PublicDisplay = () => {
 
         <div className={`h-3 rounded-full shadow-lg ${
           isDarkMode 
-            ? 'bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-400' 
+            ? 'bg-gradient-to-r from-accent via-primary to-accent' 
             : 'bg-gradient-to-r from-primary via-accent to-primary'
         }`} />
       </motion.div>
@@ -175,12 +175,12 @@ const PublicDisplay = () => {
         transition={{ delay: 0.2 }}
         className="text-center mb-10"
       >
-        <h2 className={`text-6xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-primary'}`}>
+        <h2 className={`text-6xl font-bold mb-4 ${isDarkMode ? 'text-foreground' : 'text-primary'}`}>
           Audiences du jour
         </h2>
         <div className="flex items-center justify-center gap-3">
           <Badge variant="outline" className={`text-xl px-6 py-2 ${
-            isDarkMode ? 'border-white/30 text-white' : 'border-primary/30 text-primary'
+            isDarkMode ? 'border-border text-foreground' : 'border-primary/30 text-primary'
           }`}>
             {todayAudiences.length} audience{todayAudiences.length > 1 ? 's' : ''} programmée{todayAudiences.length > 1 ? 's' : ''}
           </Badge>
@@ -188,9 +188,9 @@ const PublicDisplay = () => {
             animate={{ rotate: 360 }}
             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
           >
-            <RefreshCw className={`w-5 h-5 ${isDarkMode ? 'text-yellow-400' : 'text-accent'}`} />
+            <RefreshCw className={`w-5 h-5 ${isDarkMode ? 'text-accent' : 'text-accent'}`} />
           </motion.div>
-          <span className={`text-sm ${isDarkMode ? 'text-white/60' : 'text-muted-foreground'}`}>
+          <span className={`text-sm ${isDarkMode ? 'text-muted-foreground' : 'text-muted-foreground'}`}>
             Dernière mise à jour : {lastRefresh.toLocaleTimeString('fr-FR')}
           </span>
         </div>
@@ -203,7 +203,7 @@ const PublicDisplay = () => {
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className={`text-center py-20 ${isDarkMode ? 'text-white/60' : 'text-muted-foreground'}`}
+              className={`text-center py-20 ${isDarkMode ? 'text-muted-foreground' : 'text-muted-foreground'}`}
             >
               <Scale className="w-32 h-32 mx-auto mb-6 opacity-30" />
               <p className="text-4xl font-semibold">Aucune audience programmée aujourd'hui</p>
@@ -221,14 +221,14 @@ const PublicDisplay = () => {
                   transition={{ delay: 0.1 * index }}
                   whileHover={{ scale: 1.02, y: -5 }}
                 >
-                  <Card className={`border-0 shadow-2xl overflow-hidden ${
+                  <Card className={`border-0 shadow-elegant overflow-hidden ${
                     isDarkMode 
-                      ? 'bg-slate-800/90 backdrop-blur-sm' 
+                      ? 'bg-card backdrop-blur-sm' 
                       : 'bg-white/95 backdrop-blur-sm'
                   }`}>
                     <div className={`h-2 ${
                       isDarkMode 
-                        ? 'bg-gradient-to-r from-yellow-400 to-yellow-500' 
+                        ? 'bg-gradient-to-r from-accent to-primary' 
                         : 'bg-gradient-to-r from-primary to-accent'
                     }`} />
                     <div className="p-8">
@@ -236,24 +236,24 @@ const PublicDisplay = () => {
                         <div className="flex-1 grid grid-cols-5 gap-8 items-center">
                           {/* Numéro */}
                           <div>
-                            <p className={`text-base mb-2 ${isDarkMode ? 'text-white/60' : 'text-muted-foreground'} font-medium`}>
+                            <p className={`text-base mb-2 text-muted-foreground font-medium`}>
                               N° Affaire
                             </p>
-                            <p className={`text-3xl font-bold ${isDarkMode ? 'text-yellow-400' : 'text-primary'}`}>
+                            <p className={`text-3xl font-bold ${isDarkMode ? 'text-accent' : 'text-primary'}`}>
                               {audience.numero}
                             </p>
                           </div>
 
                           {/* Parties */}
                           <div className="col-span-2">
-                            <p className={`text-base mb-2 ${isDarkMode ? 'text-white/60' : 'text-muted-foreground'} font-medium`}>
+                            <p className={`text-base mb-2 text-muted-foreground font-medium`}>
                               Parties concernées
                             </p>
-                            <p className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-foreground'}`}>
+                            <p className={`text-2xl font-bold text-foreground`}>
                               {audience.parties}
                             </p>
                             {juge && (
-                              <p className={`text-lg mt-1 ${isDarkMode ? 'text-white/70' : 'text-muted-foreground'}`}>
+                              <p className={`text-lg mt-1 text-muted-foreground`}>
                                 Juge: {juge.prenom} {juge.nom}
                               </p>
                             )}
@@ -261,20 +261,20 @@ const PublicDisplay = () => {
 
                           {/* Heure */}
                           <div>
-                            <p className={`text-base mb-2 ${isDarkMode ? 'text-white/60' : 'text-muted-foreground'} font-medium`}>
+                            <p className={`text-base mb-2 text-muted-foreground font-medium`}>
                               Heure
                             </p>
-                            <p className={`text-4xl font-bold ${isDarkMode ? 'text-yellow-400' : 'text-primary'}`}>
+                            <p className={`text-4xl font-bold ${isDarkMode ? 'text-accent' : 'text-primary'}`}>
                               {audience.heure}
                             </p>
                           </div>
 
                           {/* Salle */}
                           <div>
-                            <p className={`text-base mb-2 ${isDarkMode ? 'text-white/60' : 'text-muted-foreground'} font-medium`}>
+                            <p className={`text-base mb-2 text-muted-foreground font-medium`}>
                               Salle
                             </p>
-                            <p className={`text-3xl font-bold ${isDarkMode ? 'text-yellow-400' : 'text-accent'}`}>
+                            <p className={`text-3xl font-bold ${isDarkMode ? 'text-accent' : 'text-accent'}`}>
                               {audience.salle}
                             </p>
                           </div>
@@ -294,7 +294,7 @@ const PublicDisplay = () => {
                               level="H"
                               includeMargin
                             />
-                            <p className="text-center text-xs text-slate-600 mt-2 font-medium">
+                            <p className="text-center text-xs text-primary mt-2 font-medium">
                               Scannez pour<br/>plus de détails
                             </p>
                           </motion.div>
@@ -316,9 +316,9 @@ const PublicDisplay = () => {
         transition={{ delay: 0.5 }}
         className="text-center"
       >
-        <div className={`inline-flex items-center gap-6 rounded-2xl px-10 py-6 shadow-2xl ${
+        <div className={`inline-flex items-center gap-6 rounded-2xl px-10 py-6 shadow-elegant ${
           isDarkMode 
-            ? 'bg-slate-800/80 backdrop-blur-lg border border-white/10' 
+            ? 'bg-card/80 backdrop-blur-lg border border-border' 
             : 'bg-white/80 backdrop-blur-lg border border-primary/10'
         }`}>
           <div className="w-20 h-20 bg-white rounded-2xl p-3 shadow-lg">
@@ -329,10 +329,10 @@ const PublicDisplay = () => {
             />
           </div>
           <div className="text-left">
-            <p className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-primary'}`}>
+            <p className={`text-2xl font-bold ${isDarkMode ? 'text-foreground' : 'text-primary'}`}>
               Scannez pour plus d'informations
             </p>
-            <p className={`text-lg ${isDarkMode ? 'text-white/70' : 'text-muted-foreground'}`}>
+            <p className={`text-lg text-muted-foreground`}>
               Suivez vos audiences en ligne sur e-Justice
             </p>
           </div>
