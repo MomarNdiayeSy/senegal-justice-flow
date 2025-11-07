@@ -80,13 +80,21 @@ export interface NotificationPreferences {
     audience_creee: boolean;
     audience_reportee: boolean;
     audience_annulee: boolean;
+    dossier_cree: boolean;
     dossier_modifie: boolean;
+    dossier_clos: boolean;
+    piece_ajoutee: boolean;
+    decision_rendue: boolean;
+    convocation_recue: boolean;
+    echeance_proche: boolean;
+    commentaire_ajoute: boolean;
+    assignation_nouveau_dossier: boolean;
   };
 }
 
 export interface Notification {
   id: string;
-  type: "audience_creee" | "audience_reportee" | "audience_annulee" | "dossier_modifie";
+  type: "audience_creee" | "audience_reportee" | "audience_annulee" | "dossier_cree" | "dossier_modifie" | "dossier_clos" | "piece_ajoutee" | "decision_rendue" | "convocation_recue" | "echeance_proche" | "commentaire_ajoute" | "assignation_nouveau_dossier";
   titre: string;
   message: string;
   date: string;
@@ -337,22 +345,74 @@ const mockNotificationPreferences: NotificationPreferences[] = [
   {
     userId: "1",
     canaux: { email: true, sms: true, whatsapp: false },
-    types: { audience_creee: true, audience_reportee: true, audience_annulee: true, dossier_modifie: true }
+    types: { 
+      audience_creee: true, 
+      audience_reportee: true, 
+      audience_annulee: true, 
+      dossier_cree: true,
+      dossier_modifie: true,
+      dossier_clos: true,
+      piece_ajoutee: true,
+      decision_rendue: true,
+      convocation_recue: true,
+      echeance_proche: true,
+      commentaire_ajoute: false,
+      assignation_nouveau_dossier: true
+    }
   },
   {
     userId: "2",
     canaux: { email: true, sms: false, whatsapp: false },
-    types: { audience_creee: true, audience_reportee: true, audience_annulee: true, dossier_modifie: true }
+    types: { 
+      audience_creee: true, 
+      audience_reportee: true, 
+      audience_annulee: true, 
+      dossier_cree: true,
+      dossier_modifie: true,
+      dossier_clos: true,
+      piece_ajoutee: true,
+      decision_rendue: true,
+      convocation_recue: true,
+      echeance_proche: true,
+      commentaire_ajoute: false,
+      assignation_nouveau_dossier: true
+    }
   },
   {
     userId: "3",
     canaux: { email: true, sms: true, whatsapp: true },
-    types: { audience_creee: true, audience_reportee: true, audience_annulee: true, dossier_modifie: true }
+    types: { 
+      audience_creee: true, 
+      audience_reportee: true, 
+      audience_annulee: true, 
+      dossier_cree: true,
+      dossier_modifie: true,
+      dossier_clos: true,
+      piece_ajoutee: true,
+      decision_rendue: true,
+      convocation_recue: true,
+      echeance_proche: true,
+      commentaire_ajoute: false,
+      assignation_nouveau_dossier: true
+    }
   },
   {
     userId: "4",
     canaux: { email: true, sms: true, whatsapp: false },
-    types: { audience_creee: true, audience_reportee: true, audience_annulee: true, dossier_modifie: false }
+    types: { 
+      audience_creee: true, 
+      audience_reportee: true, 
+      audience_annulee: true, 
+      dossier_cree: true,
+      dossier_modifie: false,
+      dossier_clos: true,
+      piece_ajoutee: true,
+      decision_rendue: true,
+      convocation_recue: true,
+      echeance_proche: true,
+      commentaire_ajoute: false,
+      assignation_nouveau_dossier: false
+    }
   }
 ];
 
@@ -624,7 +684,15 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           audience_creee: true, 
           audience_reportee: true, 
           audience_annulee: true, 
-          dossier_modifie: true 
+          dossier_cree: true,
+          dossier_modifie: true,
+          dossier_clos: true,
+          piece_ajoutee: true,
+          decision_rendue: true,
+          convocation_recue: true,
+          echeance_proche: true,
+          commentaire_ajoute: false,
+          assignation_nouveau_dossier: true
         }
       };
       setNotificationPreferences([...notificationPreferences, newPref]);

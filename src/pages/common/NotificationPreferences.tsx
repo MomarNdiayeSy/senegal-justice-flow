@@ -27,7 +27,15 @@ const NotificationPreferences = () => {
       audience_creee: userPrefs?.types.audience_creee ?? true,
       audience_reportee: userPrefs?.types.audience_reportee ?? true,
       audience_annulee: userPrefs?.types.audience_annulee ?? true,
-      dossier_modifie: userPrefs?.types.dossier_modifie ?? true
+      dossier_cree: userPrefs?.types.dossier_cree ?? true,
+      dossier_modifie: userPrefs?.types.dossier_modifie ?? true,
+      dossier_clos: userPrefs?.types.dossier_clos ?? true,
+      piece_ajoutee: userPrefs?.types.piece_ajoutee ?? true,
+      decision_rendue: userPrefs?.types.decision_rendue ?? true,
+      convocation_recue: userPrefs?.types.convocation_recue ?? true,
+      echeance_proche: userPrefs?.types.echeance_proche ?? true,
+      commentaire_ajoute: userPrefs?.types.commentaire_ajoute ?? false,
+      assignation_nouveau_dossier: userPrefs?.types.assignation_nouveau_dossier ?? true
     }
   });
 
@@ -101,26 +109,81 @@ const NotificationPreferences = () => {
     }
   ];
 
-  const types = [
+  const typeCategories = [
     {
-      id: "audience_creee",
-      label: "Audiences créées",
-      description: "Être notifié lors de la création d'une nouvelle audience"
+      category: "Audiences",
+      types: [
+        {
+          id: "audience_creee",
+          label: "Audiences créées",
+          description: "Être notifié lors de la création d'une nouvelle audience"
+        },
+        {
+          id: "audience_reportee",
+          label: "Audiences reportées",
+          description: "Être notifié lorsqu'une audience est reportée"
+        },
+        {
+          id: "audience_annulee",
+          label: "Audiences annulées",
+          description: "Être notifié lorsqu'une audience est annulée"
+        }
+      ]
     },
     {
-      id: "audience_reportee",
-      label: "Audiences reportées",
-      description: "Être notifié lorsqu'une audience est reportée"
+      category: "Dossiers",
+      types: [
+        {
+          id: "dossier_cree",
+          label: "Dossiers créés",
+          description: "Être notifié lors de la création d'un nouveau dossier"
+        },
+        {
+          id: "dossier_modifie",
+          label: "Dossiers modifiés",
+          description: "Être notifié lors de modifications sur les dossiers"
+        },
+        {
+          id: "dossier_clos",
+          label: "Dossiers clôturés",
+          description: "Être notifié lorsqu'un dossier est clôturé"
+        },
+        {
+          id: "piece_ajoutee",
+          label: "Pièces ajoutées",
+          description: "Être notifié lors de l'ajout d'une pièce à un dossier"
+        },
+        {
+          id: "assignation_nouveau_dossier",
+          label: "Assignation de dossiers",
+          description: "Être notifié lors de l'assignation d'un nouveau dossier"
+        }
+      ]
     },
     {
-      id: "audience_annulee",
-      label: "Audiences annulées",
-      description: "Être notifié lorsqu'une audience est annulée"
-    },
-    {
-      id: "dossier_modifie",
-      label: "Dossiers modifiés",
-      description: "Être notifié lors de modifications sur les dossiers"
+      category: "Procédures",
+      types: [
+        {
+          id: "decision_rendue",
+          label: "Décisions rendues",
+          description: "Être notifié lorsqu'une décision judiciaire est rendue"
+        },
+        {
+          id: "convocation_recue",
+          label: "Convocations",
+          description: "Être notifié lors de la réception d'une convocation"
+        },
+        {
+          id: "echeance_proche",
+          label: "Échéances proches",
+          description: "Être notifié lorsqu'une échéance de procédure approche"
+        },
+        {
+          id: "commentaire_ajoute",
+          label: "Commentaires ajoutés",
+          description: "Être notifié lorsqu'un commentaire est ajouté sur un dossier"
+        }
+      ]
     }
   ];
 
@@ -187,22 +250,31 @@ const NotificationPreferences = () => {
               {/* Types de notification */}
               <div>
                 <h3 className="text-lg font-semibold mb-4">Types de notification</h3>
-                <div className="grid gap-3">
-                  {types.map((type) => (
-                    <div key={type.id} className="flex items-center justify-between p-3 rounded-lg border">
-                      <div className="flex-1">
-                        <Label htmlFor={type.id} className="font-medium cursor-pointer">
-                          {type.label}
-                        </Label>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {type.description}
-                        </p>
+                <div className="space-y-6">
+                  {typeCategories.map((category) => (
+                    <div key={category.category}>
+                      <h4 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wide">
+                        {category.category}
+                      </h4>
+                      <div className="grid gap-3">
+                        {category.types.map((type) => (
+                          <div key={type.id} className="flex items-center justify-between p-3 rounded-lg border">
+                            <div className="flex-1">
+                              <Label htmlFor={type.id} className="font-medium cursor-pointer">
+                                {type.label}
+                              </Label>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                {type.description}
+                              </p>
+                            </div>
+                            <Switch
+                              id={type.id}
+                              checked={preferences.types[type.id as keyof typeof preferences.types]}
+                              onCheckedChange={() => handleTypeToggle(type.id as keyof typeof preferences.types)}
+                            />
+                          </div>
+                        ))}
                       </div>
-                      <Switch
-                        id={type.id}
-                        checked={preferences.types[type.id as keyof typeof preferences.types]}
-                        onCheckedChange={() => handleTypeToggle(type.id as keyof typeof preferences.types)}
-                      />
                     </div>
                   ))}
                 </div>
