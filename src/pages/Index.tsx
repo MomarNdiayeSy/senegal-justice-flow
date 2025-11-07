@@ -7,6 +7,7 @@ import heroImage from "@/assets/hero-modern.jpg";
 import featureDigital from "@/assets/feature-digital.jpg";
 import featureSecure from "@/assets/feature-secure.jpg";
 import featureConnected from "@/assets/feature-connected.jpg";
+import Chatbot from "@/components/Chatbot";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -492,6 +493,9 @@ const Index = () => {
           </div>
         </div>
       </footer>
+
+      {/* Chatbot Assistant */}
+      <Chatbot />
     </div>
   );
 };
