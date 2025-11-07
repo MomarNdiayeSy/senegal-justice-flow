@@ -38,7 +38,7 @@ const Index = () => {
     "Accès 24/7 pour tous les acteurs judiciaires",
     "Notifications automatiques par email et SMS",
     "Sécurité renforcée et conformité aux normes",
-    "Support multilingue et interface accessible"
+    "Interface intuitive et accessible à tous"
   ];
 
   return (
@@ -165,7 +165,7 @@ const Index = () => {
                   onClick={() => navigate("/public-display")}
                 >
                   <Monitor className="mr-2 w-5 h-5" />
-                  Découvrir SmartCourt
+                  Affichage public
                 </Button>
               </motion.div>
             </motion.div>
@@ -288,7 +288,7 @@ const Index = () => {
               viewport={{ once: true }}
             >
               <h3 className="text-4xl md:text-5xl font-display font-bold mb-6">
-                Pourquoi choisir e-Justice ?
+                <span className="text-accent">Modernité</span>, <span className="text-accent">Efficacité</span>, <span className="text-accent">Transparence</span>
               </h3>
               <p className="text-lg text-muted-foreground mb-8">
                 Une plateforme conçue pour tous les acteurs du système judiciaire sénégalais.
