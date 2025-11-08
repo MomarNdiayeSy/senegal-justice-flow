@@ -6,20 +6,11 @@ const router = Router();
 // All routes require authentication
 router.use(authenticate);
 
-router.get('/', (req, res) => {
-  res.json({ success: true, message: 'List notifications endpoint - TO IMPLEMENT' });
-});
+import * as notificationController from '../controllers/notification.controller';
 
-router.put('/:id/read', (req, res) => {
-  res.json({ success: true, message: 'Mark as read endpoint - TO IMPLEMENT' });
-});
-
-router.get('/preferences', (req, res) => {
-  res.json({ success: true, message: 'Get preferences endpoint - TO IMPLEMENT' });
-});
-
-router.put('/preferences', (req, res) => {
-  res.json({ success: true, message: 'Update preferences endpoint - TO IMPLEMENT' });
-});
+router.get('/', notificationController.listNotifications);
+router.put('/:id/read', notificationController.markAsRead);
+router.get('/preferences', notificationController.getPreferences);
+router.put('/preferences', notificationController.updatePreferences);
 
 export default router;

@@ -3,32 +3,18 @@ import { authenticate } from '../middleware/auth';
 
 const router = Router();
 
+import * as audienceController from '../controllers/audience.controller';
+
 // Public route
-router.get('/public', (req, res) => {
-  res.json({ success: true, message: 'Public audiences endpoint - TO IMPLEMENT' });
-});
+router.get('/public', audienceController.getPublicAudiences);
 
 // Protected routes
 router.use(authenticate);
 
-router.get('/', (req, res) => {
-  res.json({ success: true, message: 'List audiences endpoint - TO IMPLEMENT' });
-});
-
-router.post('/', (req, res) => {
-  res.json({ success: true, message: 'Create audience endpoint - TO IMPLEMENT' });
-});
-
-router.get('/:id', (req, res) => {
-  res.json({ success: true, message: 'Get audience endpoint - TO IMPLEMENT' });
-});
-
-router.put('/:id', (req, res) => {
-  res.json({ success: true, message: 'Update audience endpoint - TO IMPLEMENT' });
-});
-
-router.delete('/:id', (req, res) => {
-  res.json({ success: true, message: 'Cancel audience endpoint - TO IMPLEMENT' });
-});
+router.get('/', audienceController.listAudiences);
+router.post('/', audienceController.createAudience);
+router.get('/:id', audienceController.getAudienceById);
+router.put('/:id', audienceController.updateAudience);
+router.delete('/:id', audienceController.cancelAudience);
 
 export default router;

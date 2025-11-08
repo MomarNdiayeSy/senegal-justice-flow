@@ -3,18 +3,13 @@ import { authenticate, authorize } from '../middleware/auth';
 
 const router = Router();
 
-// Public routes
-router.get('/public', (req, res) => {
-  res.json({ success: true, message: 'List public documents endpoint - TO IMPLEMENT' });
-});
+import * as documentController from '../controllers/document.controller';
 
-router.get('/:id', (req, res) => {
-  res.json({ success: true, message: 'Download document endpoint - TO IMPLEMENT' });
-});
+// Public routes
+router.get('/public', documentController.listPublicDocuments);
+router.get('/:id', documentController.downloadDocument);
 
 // Admin routes
-router.post('/', authenticate, authorize('ADMIN'), (req, res) => {
-  res.json({ success: true, message: 'Upload document endpoint - TO IMPLEMENT' });
-});
+router.post('/', authenticate, authorize('ADMIN'), documentController.uploadDocument);
 
 export default router;

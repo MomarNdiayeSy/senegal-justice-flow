@@ -6,20 +6,11 @@ const router = Router();
 // All routes require admin authentication
 router.use(authenticate, authorize('ADMIN'));
 
-router.get('/users', (req, res) => {
-  res.json({ success: true, message: 'List users endpoint - TO IMPLEMENT' });
-});
+import * as adminController from '../controllers/admin.controller';
 
-router.put('/users/:id/role', (req, res) => {
-  res.json({ success: true, message: 'Change user role endpoint - TO IMPLEMENT' });
-});
-
-router.get('/stats', (req, res) => {
-  res.json({ success: true, message: 'Statistics endpoint - TO IMPLEMENT' });
-});
-
-router.get('/audit-logs', (req, res) => {
-  res.json({ success: true, message: 'Audit logs endpoint - TO IMPLEMENT' });
-});
+router.get('/users', adminController.listUsers);
+router.put('/users/:id/role', adminController.changeUserRole);
+router.get('/stats', adminController.getStats);
+router.get('/audit-logs', adminController.getAuditLogs);
 
 export default router;

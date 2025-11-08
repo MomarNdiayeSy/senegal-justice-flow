@@ -3,26 +3,15 @@ import { authenticate, authorize } from '../middleware/auth';
 
 const router = Router();
 
-// Public routes
-router.get('/', (req, res) => {
-  res.json({ success: true, message: 'List blog posts endpoint - TO IMPLEMENT' });
-});
+import * as blogController from '../controllers/blog.controller';
 
-router.get('/:slug', (req, res) => {
-  res.json({ success: true, message: 'Get blog post endpoint - TO IMPLEMENT' });
-});
+// Public routes
+router.get('/', blogController.listBlogPosts);
+router.get('/:slug', blogController.getBlogPostBySlug);
 
 // Admin routes
-router.post('/', authenticate, authorize('ADMIN'), (req, res) => {
-  res.json({ success: true, message: 'Create blog post endpoint - TO IMPLEMENT' });
-});
-
-router.put('/:id', authenticate, authorize('ADMIN'), (req, res) => {
-  res.json({ success: true, message: 'Update blog post endpoint - TO IMPLEMENT' });
-});
-
-router.delete('/:id', authenticate, authorize('ADMIN'), (req, res) => {
-  res.json({ success: true, message: 'Delete blog post endpoint - TO IMPLEMENT' });
-});
+router.post('/', authenticate, authorize('ADMIN'), blogController.createBlogPost);
+router.put('/:id', authenticate, authorize('ADMIN'), blogController.updateBlogPost);
+router.delete('/:id', authenticate, authorize('ADMIN'), blogController.deleteBlogPost);
 
 export default router;

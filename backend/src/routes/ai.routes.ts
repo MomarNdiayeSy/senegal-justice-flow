@@ -6,12 +6,9 @@ const router = Router();
 // All routes require authentication
 router.use(authenticate);
 
-router.post('/chat', (req, res) => {
-  res.json({ success: true, message: 'AI chat endpoint - TO IMPLEMENT' });
-});
+import * as aiController from '../controllers/ai.controller';
 
-router.post('/suggest', (req, res) => {
-  res.json({ success: true, message: 'AI suggestions endpoint - TO IMPLEMENT' });
-});
+router.post('/chat', aiController.chat);
+router.post('/suggest', aiController.suggest);
 
 export default router;

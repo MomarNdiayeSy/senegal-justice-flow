@@ -6,16 +6,10 @@ const router = Router();
 // All routes require authentication
 router.use(authenticate);
 
-router.get('/me', (req, res) => {
-  res.json({ success: true, message: 'User profile endpoint - TO IMPLEMENT' });
-});
+import * as userController from '../controllers/user.controller';
 
-router.put('/me', (req, res) => {
-  res.json({ success: true, message: 'Update profile endpoint - TO IMPLEMENT' });
-});
-
-router.get('/:id', (req, res) => {
-  res.json({ success: true, message: 'Get user endpoint - TO IMPLEMENT' });
-});
+router.get('/me', userController.getMe);
+router.put('/me', userController.updateMe);
+router.get('/:id', userController.getUserById);
 
 export default router;
