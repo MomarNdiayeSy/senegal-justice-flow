@@ -1,0 +1,338 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  GREFFIER
+  JUGE
+  AVOCAT
+  PROCUREUR
+  JUSTICIABLE
+}
+
+enum TypeDossier {
+  PENAL
+  CIVIL
+  COMMERCIAL
+  ADMINISTRATIF
+  SOCIAL
+}
+
+enum StatutDossier {
+  OUVERT
+  EN_INSTRUCTION
+  EN_DELIBERE
+  CLOS
+  ARCHIVE
+}
+
+enum TypeAudience {
+  AUDIENCE_PUBLIQUE
+  CHAMBRE_CONSEIL
+  FLAGRANT_DELIT
+  COMPARUTION_IMMEDIATE
+  APPEL
+}
+
+enum StatutAudience {
+  PROGRAMMEE
+  EN_COURS
+  TERMINEE
+  REPORTEE
+  ANNULEE
+}
+
+enum TypeNotification {
+  NOUVELLE_AUDIENCE
+  MODIFICATION_AUDIENCE
+  ANNULATION_AUDIENCE
+  DOSSIER_CREE
+  DOSSIER_CLOS
+  PIECE_AJOUTEE
+  DECISION_RENDUE
+  CONVOCATION_RECUE
+  ECHEANCE_PROCHE
+  COMMENTAIRE_AJOUTE
+  ASSIGNATION_NOUVEAU_DOSSIER
+  MESSAGE_SYSTEME
+}
+
+enum CanalNotification {
+  EMAIL
+  SMS
+  WHATSAPP
+  IN_APP
+}
+
+model User {
+  id                String   @id @default(uuid())
+  email             String   @unique
+  passwordHash      String   @map("password_hash")
+  emailVerified     Boolean  @default(false) @map("email_verified")
+  phoneVerified     Boolean  @default(false) @map("phone_verified")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  lastLoginAt       DateTime? @map("last_login_at")
+
+  profile           Profile?
+  roles             UserRole[]
+  notifications     Notification[]
+  notificationPrefs NotificationPreference[]
+  auditLogs         AuditLog[]
+  blogPosts         BlogPost[]
+
+  @@map("users")
+}
+
+model UserRole {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  role      Role
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, role])
+  @@map("user_roles")
+}
+
+model Profile {
+  id              String   @id @default(uuid())
+  userId          String   @unique @map("user_id")
+  nom             String
+  prenom          String
+  telephone       String?
+  avatarUrl       String?  @map("avatar_url")
+  adresse         String?
+  ville           String?
+  codePostal      String?  @map("code_postal")
+  dateNaissance   DateTime? @map("date_naissance")
+  lieuNaissance   String?  @map("lieu_naissance")
+  nationalite     String?  @default("Sénégalaise")
+  numeroOrdre     String?  @map("numero_ordre")
+  specialite      String?
+  barreau         String?
+  tribunalAttache String?  @map("tribunal_attache")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user                User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dossiersAvocat      Dossier[]  @relation("AvocatDossiers")
+  dossiersJuge        Dossier[]  @relation("JugeDossiers")
+  dossiersProcureur   Dossier[]  @relation("ProcureurDossiers")
+  dossiersJusticiable Dossier[]  @relation("JusticiableDossiers")
+
+  @@map("profiles")
+}
+
+model Dossier {
+  id              String        @id @default(uuid())
+  numeroDossier   String        @unique @map("numero_dossier")
+  titre           String
+  description     String?
+  type            TypeDossier
+  statut          StatutDossier @default(OUVERT)
+  dateOuverture   DateTime      @default(now()) @map("date_ouverture")
+  dateCloture     DateTime?     @map("date_cloture")
+  tribunal        String
+  chambre         String?
+  avocatId        String?       @map("avocat_id")
+  jugeId          String?       @map("juge_id")
+  procureurId     String?       @map("procureur_id")
+  justiciableId   String?       @map("justiciable_id")
+  montantLitige   Decimal?      @map("montant_litige") @db.Decimal(15, 2)
+  observations    String?
+  metadata        Json?
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  avocat        Profile?        @relation("AvocatDossiers", fields: [avocatId], references: [id])
+  juge          Profile?        @relation("JugeDossiers", fields: [jugeId], references: [id])
+  procureur     Profile?        @relation("ProcureurDossiers", fields: [procureurId], references: [id])
+  justiciable   Profile?        @relation("JusticiableDossiers", fields: [justiciableId], references: [id])
+  audiences     Audience[]
+  piecesJointes PieceJointe[]
+  decisions     Decision[]
+
+  @@index([avocatId])
+  @@index([jugeId])
+  @@index([procureurId])
+  @@index([justiciableId])
+  @@index([statut])
+  @@map("dossiers")
+}
+
+model Audience {
+  id               String         @id @default(uuid())
+  dossierId        String         @map("dossier_id")
+  dateAudience     DateTime       @map("date_audience")
+  heureDebut       DateTime       @map("heure_debut")
+  heureFin         DateTime?      @map("heure_fin")
+  salle            String
+  typeAudience     TypeAudience   @map("type_audience")
+  statut           StatutAudience @default(PROGRAMMEE)
+  objetAudience    String         @map("objet_audience")
+  procesVerbal     String?        @map("proces_verbal")
+  observations     String?
+  publicationWeb   Boolean        @default(false) @map("publication_web")
+  metadata         Json?
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+
+  dossier Dossier @relation(fields: [dossierId], references: [id], onDelete: Cascade)
+
+  @@index([dossierId])
+  @@index([dateAudience])
+  @@index([statut])
+  @@map("audiences")
+}
+
+model PieceJointe {
+  id               String   @id @default(uuid())
+  dossierId        String   @map("dossier_id")
+  nom              String
+  description      String?
+  typeFichier      String   @map("type_fichier")
+  tailleFichier    Int      @map("taille_fichier")
+  urlFichier       String   @map("url_fichier")
+  cheminStockage   String   @map("chemin_stockage")
+  confidentiel     Boolean  @default(true)
+  uploadePar       String?  @map("uploade_par")
+  dateUpload       DateTime @default(now()) @map("date_upload")
+  checksum         String?
+  metadata         Json?
+
+  dossier Dossier @relation(fields: [dossierId], references: [id], onDelete: Cascade)
+
+  @@index([dossierId])
+  @@map("pieces_jointes")
+}
+
+model Decision {
+  id                 String   @id @default(uuid())
+  dossierId          String   @map("dossier_id")
+  numeroDecision     String   @unique @map("numero_decision")
+  typeDecision       String   @map("type_decision")
+  dateDelibere       DateTime @map("date_delibere")
+  datePrononce       DateTime @map("date_prononce")
+  dispositif         String
+  motivationComplete String?  @map("motivation_complete")
+  sensPrononce       String   @map("sens_prononce")
+  publicationWeb     Boolean  @default(false) @map("publication_web")
+  urlDocument        String?  @map("url_document")
+  metadata           Json?
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  dossier Dossier @relation(fields: [dossierId], references: [id], onDelete: Cascade)
+
+  @@index([dossierId])
+  @@map("decisions")
+}
+
+model Notification {
+  id               String            @id @default(uuid())
+  userId           String            @map("user_id")
+  type             TypeNotification
+  titre            String
+  message          String
+  lue              Boolean           @default(false)
+  dateLue          DateTime?         @map("date_lue")
+  actionUrl        String?           @map("action_url")
+  metadata         Json?
+  createdAt        DateTime          @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([lue])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id             String             @id @default(uuid())
+  userId         String             @map("user_id")
+  type           TypeNotification
+  canal          CanalNotification
+  active         Boolean            @default(true)
+  frequence      String?
+  horaireDebut   String?            @map("horaire_debut")
+  horaireFin     String?            @map("horaire_fin")
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type, canal])
+  @@map("notification_preferences")
+}
+
+model AuditLog {
+  id            String   @id @default(uuid())
+  userId        String?  @map("user_id")
+  action        String
+  entity        String
+  entityId      String?  @map("entity_id")
+  details       Json?
+  ipAddress     String?  @map("ip_address")
+  userAgent     String?  @map("user_agent")
+  timestamp     DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([entity, entityId])
+  @@index([timestamp])
+  @@map("audit_logs")
+}
+
+model BlogPost {
+  id              String   @id @default(uuid())
+  titre           String
+  slug            String   @unique
+  contenu         String
+  resume          String?
+  imageUrl        String?  @map("image_url")
+  auteurId        String   @map("auteur_id")
+  publie          Boolean  @default(false)
+  datePublication DateTime? @map("date_publication")
+  tags            String[]
+  vues            Int      @default(0)
+  metadata        Json?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  auteur User @relation(fields: [auteurId], references: [id])
+
+  @@index([auteurId])
+  @@index([publie])
+  @@map("blog_posts")
+}
+
+model DocumentPublic {
+  id               String   @id @default(uuid())
+  titre            String
+  description      String?
+  categorie        String
+  typeFichier      String   @map("type_fichier")
+  urlFichier       String   @map("url_fichier")
+  tailleFichier    Int      @map("taille_fichier")
+  nombreVues       Int      @default(0) @map("nombre_vues")
+  nombreTele       Int      @default(0) @map("nombre_telechargements")
+  tags             String[]
+  publie           Boolean  @default(false)
+  datePublication  DateTime? @map("date_publication")
+  metadata         Json?
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@index([categorie])
+  @@index([publie])
+  @@map("documents_publics")
+}
