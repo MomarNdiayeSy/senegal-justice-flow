@@ -81,11 +81,26 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
   return (
     <div className="min-h-screen bg-background flex w-full">
+      {/* Overlay pour mobile */}
+      {sidebarOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+        />
+      )}
+
       {/* Sidebar */}
       <motion.aside
         initial={false}
-        animate={{ width: sidebarOpen ? 280 : 80 }}
-        className="gradient-hero text-primary-foreground shadow-elegant relative z-10"
+        animate={{ 
+          x: sidebarOpen ? 0 : -280,
+          width: 280 
+        }}
+        className="gradient-hero text-primary-foreground shadow-elegant fixed lg:relative z-50 h-screen lg:z-10 lg:translate-x-0"
+        style={{ width: sidebarOpen ? 280 : 0 }}
       >
         <div className="p-6 flex items-center justify-between border-b border-white/10">
           {sidebarOpen && (
@@ -164,26 +179,36 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       </motion.aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 w-full">
         {/* Top Bar */}
-        <header className="bg-card border-b border-border p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">Tableau de bord</h1>
-              <p className="text-sm text-muted-foreground">
+        <header className="bg-card border-b border-border p-3 md:p-4 shadow-sm sticky top-0 z-30">
+          <div className="flex items-center justify-between gap-2">
+            {/* Menu hamburger pour mobile */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="lg:hidden hover:bg-primary/10"
+            >
+              <Menu className="w-5 h-5" />
+            </Button>
+            
+            <div className="flex-1 min-w-0">
+              <h1 className="text-lg md:text-2xl font-bold truncate">Tableau de bord</h1>
+              <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">
                 Bienvenue sur votre espace de gestion
               </p>
             </div>
-            <div className="flex items-center gap-4 cursor-pointer hover:opacity-80 transition-smooth" onClick={() => navigate("/dashboard/profile")}>
-              <div className="text-right">
-                <p className="font-medium">
+            <div className="flex items-center gap-2 md:gap-4 cursor-pointer hover:opacity-80 transition-smooth" onClick={() => navigate("/dashboard/profile")}>
+              <div className="text-right hidden md:block">
+                <p className="font-medium text-sm md:text-base">
                   {currentUser ? `${currentUser.prenom} ${currentUser.nom}` : "Utilisateur"}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {currentUser ? getRoleLabel(currentUser.role) : "Invité"}
                 </p>
               </div>
-              <Avatar className="w-10 h-10 ring-2 ring-primary/20">
+              <Avatar className="w-8 h-8 md:w-10 md:h-10 ring-2 ring-primary/20">
                 <AvatarImage src={currentUser?.photo} alt={currentUser?.nom} />
                 <AvatarFallback className="bg-accent text-accent-foreground font-bold">
                   {currentUser ? `${currentUser.prenom[0]}${currentUser.nom[0]}` : "?"}
@@ -194,7 +219,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-auto p-6">
+        <main className="flex-1 overflow-auto p-3 md:p-6">
           {children}
         </main>
       </div>

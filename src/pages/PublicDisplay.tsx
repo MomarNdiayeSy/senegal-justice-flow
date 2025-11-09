@@ -86,7 +86,7 @@ const PublicDisplay = () => {
   };
 
   return (
-    <div className={`min-h-screen p-8 transition-smooth ${
+    <div className={`min-h-screen p-4 md:p-8 transition-smooth ${
       isDarkMode 
         ? 'bg-background text-foreground' 
         : 'bg-gradient-to-br from-blue-50 via-white to-blue-50 text-foreground'
@@ -125,32 +125,32 @@ const PublicDisplay = () => {
       <motion.div
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="mb-12"
+        className="mb-6 md:mb-12"
       >
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-6">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-4 md:gap-6 mb-6 md:mb-8">
+          <div className="flex items-center gap-3 md:gap-6">
             <motion.div
               animate={{ rotate: [0, 10, -10, 0] }}
               transition={{ duration: 2, repeat: Infinity, repeatDelay: 5 }}
             >
-              <Scale className={`w-24 h-24 ${isDarkMode ? 'text-accent' : 'text-primary'}`} />
+              <Scale className={`w-12 h-12 md:w-16 lg:w-24 md:h-16 lg:h-24 ${isDarkMode ? 'text-accent' : 'text-primary'}`} />
             </motion.div>
             <div>
-              <h1 className={`text-7xl font-bold ${isDarkMode ? 'text-foreground' : 'text-primary'}`}>
+              <h1 className={`text-2xl sm:text-3xl md:text-5xl lg:text-7xl font-bold ${isDarkMode ? 'text-foreground' : 'text-primary'}`}>
                 e-Justice Sénégal
               </h1>
-              <p className={`text-3xl mt-2 ${isDarkMode ? 'text-accent' : 'text-accent'} font-semibold`}>
+              <p className={`text-base sm:text-xl md:text-2xl lg:text-3xl mt-1 md:mt-2 ${isDarkMode ? 'text-accent' : 'text-accent'} font-semibold`}>
                 Ministère de la Justice
               </p>
             </div>
           </div>
-          <div className="text-right">
-            <div className={`flex items-center gap-4 text-5xl font-bold ${isDarkMode ? 'text-accent' : 'text-primary'}`}>
-              <Clock className="w-14 h-14" />
+          <div className="text-center lg:text-right">
+            <div className={`flex items-center justify-center lg:justify-end gap-2 md:gap-4 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold ${isDarkMode ? 'text-accent' : 'text-primary'}`}>
+              <Clock className="w-8 h-8 md:w-10 lg:w-14 md:h-10 lg:h-14" />
               {currentTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
             </div>
-            <div className={`flex items-center gap-3 text-2xl mt-3 ${isDarkMode ? 'text-muted-foreground' : 'text-muted-foreground'}`}>
-              <CalendarIcon className="w-9 h-9" />
+            <div className={`flex items-center justify-center lg:justify-end gap-2 md:gap-3 text-sm sm:text-base md:text-xl lg:text-2xl mt-2 md:mt-3 ${isDarkMode ? 'text-muted-foreground' : 'text-muted-foreground'}`}>
+              <CalendarIcon className="w-5 h-5 md:w-7 lg:w-9 md:h-7 lg:h-9" />
               {currentTime.toLocaleDateString('fr-FR', { 
                 weekday: 'long', 
                 day: 'numeric', 
@@ -173,13 +173,13 @@ const PublicDisplay = () => {
         initial={{ x: -50, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ delay: 0.2 }}
-        className="text-center mb-10"
+        className="text-center mb-6 md:mb-10"
       >
-        <h2 className={`text-6xl font-bold mb-4 ${isDarkMode ? 'text-foreground' : 'text-primary'}`}>
+        <h2 className={`text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold mb-3 md:mb-4 ${isDarkMode ? 'text-foreground' : 'text-primary'}`}>
           Audiences du jour
         </h2>
-        <div className="flex items-center justify-center gap-3">
-          <Badge variant="outline" className={`text-xl px-6 py-2 ${
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-2 md:gap-3">
+          <Badge variant="outline" className={`text-sm sm:text-base md:text-xl px-3 md:px-6 py-1 md:py-2 ${
             isDarkMode ? 'border-border text-foreground' : 'border-primary/30 text-primary'
           }`}>
             {todayAudiences.length} audience{todayAudiences.length > 1 ? 's' : ''} programmée{todayAudiences.length > 1 ? 's' : ''}
@@ -226,34 +226,34 @@ const PublicDisplay = () => {
                       ? 'bg-card backdrop-blur-sm' 
                       : 'bg-white/95 backdrop-blur-sm'
                   }`}>
-                    <div className={`h-2 ${
+                    <div className={`h-1 md:h-2 ${
                       isDarkMode 
                         ? 'bg-gradient-to-r from-accent to-primary' 
                         : 'bg-gradient-to-r from-primary to-accent'
                     }`} />
-                    <div className="p-8">
-                      <div className="flex items-center justify-between gap-8">
-                        <div className="flex-1 grid grid-cols-5 gap-8 items-center">
+                    <div className="p-4 md:p-6 lg:p-8">
+                      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 md:gap-6 lg:gap-8">
+                        <div className="flex-1 w-full grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-6 lg:gap-8 items-center">
                           {/* Numéro */}
                           <div>
-                            <p className={`text-base mb-2 text-muted-foreground font-medium`}>
+                            <p className={`text-xs md:text-sm mb-1 md:mb-2 text-muted-foreground font-medium`}>
                               N° Affaire
                             </p>
-                            <p className={`text-3xl font-bold ${isDarkMode ? 'text-accent' : 'text-primary'}`}>
+                            <p className={`text-base md:text-2xl lg:text-3xl font-bold ${isDarkMode ? 'text-accent' : 'text-primary'}`}>
                               {audience.numero}
                             </p>
                           </div>
 
                           {/* Parties */}
-                          <div className="col-span-2">
-                            <p className={`text-base mb-2 text-muted-foreground font-medium`}>
+                          <div className="col-span-2 lg:col-span-2">
+                            <p className={`text-xs md:text-sm mb-1 md:mb-2 text-muted-foreground font-medium`}>
                               Parties concernées
                             </p>
-                            <p className={`text-2xl font-bold text-foreground`}>
+                            <p className={`text-sm md:text-xl lg:text-2xl font-bold text-foreground`}>
                               {audience.parties}
                             </p>
                             {juge && (
-                              <p className={`text-lg mt-1 text-muted-foreground`}>
+                              <p className={`text-xs md:text-base lg:text-lg mt-1 text-muted-foreground`}>
                                 Juge: {juge.prenom} {juge.nom}
                               </p>
                             )}
@@ -261,27 +261,27 @@ const PublicDisplay = () => {
 
                           {/* Heure */}
                           <div>
-                            <p className={`text-base mb-2 text-muted-foreground font-medium`}>
+                            <p className={`text-xs md:text-sm mb-1 md:mb-2 text-muted-foreground font-medium`}>
                               Heure
                             </p>
-                            <p className={`text-4xl font-bold ${isDarkMode ? 'text-accent' : 'text-primary'}`}>
+                            <p className={`text-xl md:text-3xl lg:text-4xl font-bold ${isDarkMode ? 'text-accent' : 'text-primary'}`}>
                               {audience.heure}
                             </p>
                           </div>
 
                           {/* Salle */}
                           <div>
-                            <p className={`text-base mb-2 text-muted-foreground font-medium`}>
+                            <p className={`text-xs md:text-sm mb-1 md:mb-2 text-muted-foreground font-medium`}>
                               Salle
                             </p>
-                            <p className={`text-3xl font-bold ${isDarkMode ? 'text-accent' : 'text-accent'}`}>
+                            <p className={`text-base md:text-2xl lg:text-3xl font-bold ${isDarkMode ? 'text-accent' : 'text-accent'}`}>
                               {audience.salle}
                             </p>
                           </div>
                         </div>
 
                         {/* Status & QR */}
-                        <div className="flex items-center gap-8">
+                        <div className="flex flex-row lg:flex-col items-center justify-between lg:justify-center w-full lg:w-auto gap-4 md:gap-8">
                           {getStatusBadge(audience.statut)}
                           <motion.div
                             whileHover={{ scale: 1.1, rotate: 5 }}
