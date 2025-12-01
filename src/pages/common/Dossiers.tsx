@@ -431,14 +431,14 @@ const Dossiers = () => {
                     <div className="space-y-2">
                       <Label>Audience liée</Label>
                       <Select
-                        value={formData.audienceId}
-                        onValueChange={(value) => setFormData({ ...formData, audienceId: value })}
+                        value={formData.audienceId || "__none__"}
+                        onValueChange={(value) => setFormData({ ...formData, audienceId: value === "__none__" ? "" : value })}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner (optionnel)" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Aucune</SelectItem>
+                          <SelectItem value="__none__">Aucune</SelectItem>
                           {audiences.map((audience) => (
                             <SelectItem key={audience.id} value={audience.id}>
                               {audience.numero} - {audience.parties}
