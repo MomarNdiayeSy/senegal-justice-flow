@@ -314,14 +314,14 @@ const Audiences = () => {
                     <div className="space-y-2">
                       <Label>Procureur</Label>
                       <Select
-                        value={formData.procureurId}
-                        onValueChange={(value) => setFormData({ ...formData, procureurId: value })}
+                        value={formData.procureurId || "__none__"}
+                        onValueChange={(value) => setFormData({ ...formData, procureurId: value === "__none__" ? "" : value })}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner un procureur (optionnel)" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Aucun</SelectItem>
+                          <SelectItem value="__none__">Aucun</SelectItem>
                           {procureurs.map((procureur) => (
                             <SelectItem key={procureur.id} value={procureur.id}>
                               {procureur.prenom} {procureur.nom} - {procureur.tribunal}
@@ -373,14 +373,14 @@ const Audiences = () => {
                     <div className="space-y-2">
                       <Label>Dossier associé</Label>
                       <Select
-                        value={formData.dossierId}
-                        onValueChange={(value) => setFormData({ ...formData, dossierId: value })}
+                        value={formData.dossierId || "__none__"}
+                        onValueChange={(value) => setFormData({ ...formData, dossierId: value === "__none__" ? "" : value })}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner un dossier (optionnel)" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Aucun</SelectItem>
+                          <SelectItem value="__none__">Aucun</SelectItem>
                           {dossiers.map((dossier) => (
                             <SelectItem key={dossier.id} value={dossier.id}>
                               {dossier.numero} - {dossier.titre}
@@ -430,14 +430,14 @@ const Audiences = () => {
                   <div className="space-y-2">
                     <Label>Juge</Label>
                     <Select
-                      value={filters.jugeId}
-                      onValueChange={(value) => setFilters({ ...filters, jugeId: value })}
+                      value={filters.jugeId || "__all__"}
+                      onValueChange={(value) => setFilters({ ...filters, jugeId: value === "__all__" ? "" : value })}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Tous les juges" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Tous</SelectItem>
+                        <SelectItem value="__all__">Tous</SelectItem>
                         {juges.map((juge) => (
                           <SelectItem key={juge.id} value={juge.id}>
                             {juge.prenom} {juge.nom}
@@ -449,14 +449,14 @@ const Audiences = () => {
                   <div className="space-y-2">
                     <Label>Avocat</Label>
                     <Select
-                      value={filters.avocatId}
-                      onValueChange={(value) => setFilters({ ...filters, avocatId: value })}
+                      value={filters.avocatId || "__all__"}
+                      onValueChange={(value) => setFilters({ ...filters, avocatId: value === "__all__" ? "" : value })}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Tous les avocats" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Tous</SelectItem>
+                        <SelectItem value="__all__">Tous</SelectItem>
                         {avocats.map((avocat) => (
                           <SelectItem key={avocat.id} value={avocat.id}>
                             {avocat.prenom} {avocat.nom}
@@ -468,14 +468,14 @@ const Audiences = () => {
                   <div className="space-y-2">
                     <Label>Statut</Label>
                     <Select
-                      value={filters.statut}
-                      onValueChange={(value) => setFilters({ ...filters, statut: value as Audience["statut"] })}
+                      value={filters.statut || "__all__"}
+                      onValueChange={(value) => setFilters({ ...filters, statut: value === "__all__" ? "" : value as Audience["statut"] })}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Tous les statuts" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Tous</SelectItem>
+                        <SelectItem value="__all__">Tous</SelectItem>
                         {Object.entries(statutLabels).map(([key, { label }]) => (
                           <SelectItem key={key} value={key}>
                             {label}
