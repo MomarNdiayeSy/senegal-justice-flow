@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Search, Edit, Trash2, Eye, Calendar, Clock, MapPin, Users, QrCode, History, Filter, X } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Eye, Calendar, Clock, MapPin, Users, QrCode, History, Filter, X, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,15 +23,25 @@ import {
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import DashboardLayout from "@/components/DashboardLayout";
 import { useApp, Audience, UserRole } from "@/contexts/AppContext";
 import { useToast } from "@/hooks/use-toast";
+import { usePermissions } from "@/hooks/usePermissions";
 import { QRCodeSVG } from "qrcode.react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Audiences = () => {
   const { audiences, users, dossiers, addAudience, updateAudience, deleteAudience, currentUser } = useApp();
   const { toast } = useToast();
+  const { 
+    canCreateAudience, 
+    canAccessAudience, 
+    canEditSpecificAudience,
+    getAccessibleAudiences,
+    permissions 
+  } = usePermissions();
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
@@ -65,8 +75,11 @@ const Audiences = () => {
     terminee: { label: "Terminée", color: "bg-red-500" }
   };
 
-  // Filtrage des audiences
-  const filteredAudiences = audiences.filter(audience => {
+  // Obtenir les audiences accessibles selon le rôle
+  const accessibleAudiences = getAccessibleAudiences();
+
+  // Filtrage des audiences accessibles
+  const filteredAudiences = accessibleAudiences.filter(audience => {
     const matchesSearch = 
       audience.numero.toLowerCase().includes(searchTerm.toLowerCase()) ||
       audience.parties.toLowerCase().includes(searchTerm.toLowerCase());
@@ -194,6 +207,17 @@ const Audiences = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        {/* Alerte sur les droits d'accès */}
+        <Alert>
+          <Lock className="h-4 w-4" />
+          <AlertDescription>
+            {permissions?.canViewAllAudiences 
+              ? "Vous avez accès à toutes les audiences du système."
+              : `Vous voyez uniquement les audiences qui vous concernent (${accessibleAudiences.length} audience${accessibleAudiences.length > 1 ? 's' : ''}).`
+            }
+          </AlertDescription>
+        </Alert>
+
         <Card className="shadow-md border-0">
           <CardHeader>
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -201,16 +225,17 @@ const Audiences = () => {
                 <Calendar className="w-6 h-6" />
                 Gestion des audiences
               </CardTitle>
-              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="shadow-gold hover:shadow-gold" onClick={() => {
-                    setEditingAudience(null);
-                    resetForm();
-                  }}>
-                    <Plus className="w-5 h-5 mr-2" />
-                    Nouvelle audience
-                  </Button>
-                </DialogTrigger>
+              {canCreateAudience && (
+                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="shadow-gold hover:shadow-gold" onClick={() => {
+                      setEditingAudience(null);
+                      resetForm();
+                    }}>
+                      <Plus className="w-5 h-5 mr-2" />
+                      Nouvelle audience
+                    </Button>
+                  </DialogTrigger>
                 <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>
@@ -398,6 +423,7 @@ const Audiences = () => {
                   </form>
                 </DialogContent>
               </Dialog>
+              )}
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -601,23 +627,29 @@ const Audiences = () => {
                               <History className="w-4 h-4 mr-2" />
                               Historique
                             </Button>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm">
-                                  Actions
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleEdit(audience)}>
-                                  <Edit className="w-4 h-4 mr-2" />
-                                  Modifier
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleDelete(audience.id)} className="text-destructive">
-                                  <Trash2 className="w-4 h-4 mr-2" />
-                                  Supprimer
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                            {(canEditSpecificAudience(audience) || permissions?.canDeleteAudience) && (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm">
+                                    Actions
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  {canEditSpecificAudience(audience) && (
+                                    <DropdownMenuItem onClick={() => handleEdit(audience)}>
+                                      <Edit className="w-4 h-4 mr-2" />
+                                      Modifier
+                                    </DropdownMenuItem>
+                                  )}
+                                  {permissions?.canDeleteAudience && (
+                                    <DropdownMenuItem onClick={() => handleDelete(audience.id)} className="text-destructive">
+                                      <Trash2 className="w-4 h-4 mr-2" />
+                                      Supprimer
+                                    </DropdownMenuItem>
+                                  )}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            )}
                           </div>
                         </div>
                       </CardContent>

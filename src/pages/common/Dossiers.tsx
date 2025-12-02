@@ -38,10 +38,18 @@ import { Checkbox } from "@/components/ui/checkbox";
 import DashboardLayout from "@/components/DashboardLayout";
 import { useApp, Dossier } from "@/contexts/AppContext";
 import { useToast } from "@/hooks/use-toast";
+import { usePermissions } from "@/hooks/usePermissions";
 
 const Dossiers = () => {
   const { dossiers, audiences, users, addDossier, updateDossier, currentUser } = useApp();
   const { toast } = useToast();
+  const { 
+    canCreateDossier, 
+    canAccessDossier, 
+    canEditSpecificDossier,
+    getAccessibleDossiers,
+    permissions 
+  } = usePermissions();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("tous");
   const [sortBy, setSortBy] = useState<string>("date_desc");
@@ -112,30 +120,24 @@ const Dossiers = () => {
     return <File className="w-5 h-5 text-muted-foreground" />;
   };
 
-  const hasAccess = (dossier: Dossier) => {
-    if (!currentUser) return false;
-    if (currentUser.role === "admin") return true;
-    return dossier.accessList.includes(currentUser.id);
-  };
-
-  const sortDossiers = (dossiers: Dossier[]) => {
+  const sortDossiers = (dossiersToSort: Dossier[]) => {
     switch (sortBy) {
       case "date_desc":
-        return [...dossiers].sort((a, b) => new Date(b.dateCreation).getTime() - new Date(a.dateCreation).getTime());
+        return [...dossiersToSort].sort((a, b) => new Date(b.dateCreation).getTime() - new Date(a.dateCreation).getTime());
       case "date_asc":
-        return [...dossiers].sort((a, b) => new Date(a.dateCreation).getTime() - new Date(b.dateCreation).getTime());
+        return [...dossiersToSort].sort((a, b) => new Date(a.dateCreation).getTime() - new Date(b.dateCreation).getTime());
       case "numero":
-        return [...dossiers].sort((a, b) => a.numero.localeCompare(b.numero));
+        return [...dossiersToSort].sort((a, b) => a.numero.localeCompare(b.numero));
       default:
-        return dossiers;
+        return dossiersToSort;
     }
   };
 
+  // Utiliser les permissions pour filtrer les dossiers accessibles
+  const accessibleDossiers = getAccessibleDossiers();
+
   const filteredDossiers = sortDossiers(
-    dossiers.filter(dossier => {
-      // Filtrage par accès selon le rôle
-      if (!hasAccess(dossier)) return false;
-      
+    accessibleDossiers.filter(dossier => {
       const matchesSearch = dossier.numero.toLowerCase().includes(searchTerm.toLowerCase()) ||
         dossier.titre.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesStatus = statusFilter === "tous" || dossier.statut === statusFilter;
@@ -270,7 +272,7 @@ const Dossiers = () => {
   }, [formData]);
 
   const handleViewDossier = (dossier: Dossier) => {
-    if (!hasAccess(dossier)) {
+    if (!canAccessDossier(dossier)) {
       toast({
         title: "❌ Accès refusé",
         description: "Vous n'avez pas les droits pour consulter ce dossier.",
@@ -312,15 +314,26 @@ const Dossiers = () => {
   };
 
   const stats = [
-    { label: "Total dossiers", value: dossiers.filter(d => hasAccess(d)).length, color: "text-primary", icon: FolderOpen },
-    { label: "En cours", value: dossiers.filter(d => d.statut === "en_cours" && hasAccess(d)).length, color: "text-blue-600", icon: File },
-    { label: "Clos", value: dossiers.filter(d => d.statut === "clos" && hasAccess(d)).length, color: "text-green-600", icon: FileText },
-    { label: "Archivés", value: dossiers.filter(d => d.statut === "archive" && hasAccess(d)).length, color: "text-gray-600", icon: Archive }
+    { label: "Total dossiers", value: accessibleDossiers.length, color: "text-primary", icon: FolderOpen },
+    { label: "En cours", value: accessibleDossiers.filter(d => d.statut === "en_cours").length, color: "text-blue-600", icon: File },
+    { label: "Clos", value: accessibleDossiers.filter(d => d.statut === "clos").length, color: "text-green-600", icon: FileText },
+    { label: "Archivés", value: accessibleDossiers.filter(d => d.statut === "archive").length, color: "text-gray-600", icon: Archive }
   ];
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        {/* Info sur les droits d'accès */}
+        <Alert>
+          <Lock className="h-4 w-4" />
+          <AlertDescription>
+            {permissions?.canViewAllDossiers 
+              ? "Vous avez accès à tous les dossiers du système."
+              : `Vous voyez uniquement les dossiers qui vous concernent (${accessibleDossiers.length} dossier${accessibleDossiers.length > 1 ? 's' : ''}).`
+            }
+          </AlertDescription>
+        </Alert>
+
         {/* Info archivage automatique */}
         <Alert>
           <AlertCircle className="h-4 w-4" />
@@ -362,13 +375,14 @@ const Dossiers = () => {
                 <FolderOpen className="w-7 h-7 text-primary" />
                 Gestion des dossiers judiciaires
               </CardTitle>
-              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="shadow-gold hover:shadow-gold hover:scale-105 transition-smooth">
-                    <Plus className="w-5 h-5 mr-2" />
-                    Nouveau dossier
-                  </Button>
-                </DialogTrigger>
+              {canCreateDossier && (
+                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="shadow-gold hover:shadow-gold hover:scale-105 transition-smooth">
+                      <Plus className="w-5 h-5 mr-2" />
+                      Nouveau dossier
+                    </Button>
+                  </DialogTrigger>
                 <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Créer un nouveau dossier judiciaire</DialogTitle>
@@ -564,6 +578,7 @@ const Dossiers = () => {
                   </form>
                 </DialogContent>
               </Dialog>
+              )}
             </div>
           </CardHeader>
           <CardContent>
@@ -604,7 +619,7 @@ const Dossiers = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <AnimatePresence>
                 {filteredDossiers.map((dossier, index) => {
-                  const hasFullAccess = hasAccess(dossier);
+                  const canEdit = canEditSpecificDossier(dossier);
                   const audience = dossier.audienceId ? audiences.find(a => a.id === dossier.audienceId) : null;
                   
                   return (
@@ -624,7 +639,7 @@ const Dossiers = () => {
                               <div className="flex-1 min-w-0">
                                 <h3 className="font-bold text-lg mb-1 text-primary truncate flex items-center gap-2">
                                   {dossier.numero}
-                                  {!hasFullAccess && <Lock className="w-4 h-4 text-muted-foreground" />}
+                                  {!canEdit && <Lock className="w-4 h-4 text-muted-foreground" />}
                                 </h3>
                                 <p className="text-muted-foreground text-sm truncate">{dossier.titre}</p>
                               </div>
@@ -697,7 +712,7 @@ const Dossiers = () => {
                                 </div>
                               )}
                               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                {hasFullAccess ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+                                {canEdit ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
                                 <span>{dossier.accessList.length} utilisateur(s)</span>
                               </div>
                             </div>
