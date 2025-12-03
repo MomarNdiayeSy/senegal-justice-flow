@@ -21,6 +21,11 @@ import AdminStats from "./pages/admin/Stats";
 
 // Greffier pages
 import GreffierDashboard from "./pages/greffier/Dashboard";
+import GreffierUsers from "./pages/greffier/Users";
+import GreffierValidationDecisions from "./pages/greffier/ValidationDecisions";
+import GreffierInstructions from "./pages/greffier/InstructionsGreffe";
+import GreffierStats from "./pages/greffier/Stats";
+import GreffierAffichage from "./pages/greffier/Affichage";
 
 // Juge pages
 import JugeDashboard from "./pages/juge/Dashboard";
@@ -95,6 +100,31 @@ const App = () => (
             <Route path="/greffier/dashboard" element={
               <ProtectedRoute allowedRoles={["greffier"]}>
                 <GreffierDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/greffier/users" element={
+              <ProtectedRoute allowedRoles={["greffier"]}>
+                <GreffierUsers />
+              </ProtectedRoute>
+            } />
+            <Route path="/greffier/validation-decisions" element={
+              <ProtectedRoute allowedRoles={["greffier"]}>
+                <GreffierValidationDecisions />
+              </ProtectedRoute>
+            } />
+            <Route path="/greffier/instructions" element={
+              <ProtectedRoute allowedRoles={["greffier"]}>
+                <GreffierInstructions />
+              </ProtectedRoute>
+            } />
+            <Route path="/greffier/stats" element={
+              <ProtectedRoute allowedRoles={["greffier"]}>
+                <GreffierStats />
+              </ProtectedRoute>
+            } />
+            <Route path="/greffier/affichage" element={
+              <ProtectedRoute allowedRoles={["greffier"]}>
+                <GreffierAffichage />
               </ProtectedRoute>
             } />
 
