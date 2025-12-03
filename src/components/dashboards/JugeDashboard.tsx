@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Scale, Calendar, FileText, CheckCircle, Clock, TrendingUp, PenTool, History, Folder } from "lucide-react";
+import { Scale, Calendar, FileText, CheckCircle, Clock, TrendingUp, PenTool, History, Folder, MessageSquare, BarChart3 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -161,20 +161,36 @@ const JugeDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Button variant="outline" className="h-auto py-6 flex-col gap-2">
+              <Button variant="outline" className="h-auto py-6 flex-col gap-2" onClick={() => navigate('/juge/decisions')}>
                 <PenTool className="w-8 h-8 text-primary" />
                 <span className="font-semibold">Rédiger une décision</span>
                 <span className="text-xs text-muted-foreground">Nouvelle décision judiciaire</span>
               </Button>
-              <Button variant="outline" className="h-auto py-6 flex-col gap-2" onClick={() => navigate('/dossiers')}>
+              <Button variant="outline" className="h-auto py-6 flex-col gap-2" onClick={() => navigate('/dashboard/dossiers')}>
                 <Folder className="w-8 h-8 text-primary" />
                 <span className="font-semibold">Dossiers en cours</span>
                 <span className="text-xs text-muted-foreground">Consulter les affaires</span>
               </Button>
-              <Button variant="outline" className="h-auto py-6 flex-col gap-2">
+              <Button variant="outline" className="h-auto py-6 flex-col gap-2" onClick={() => navigate('/juge/historique-decisions')}>
                 <History className="w-8 h-8 text-primary" />
                 <span className="font-semibold">Historique</span>
-                <span className="text-xs text-muted-foreground">Affaires terminées</span>
+                <span className="text-xs text-muted-foreground">Décisions rendues</span>
+              </Button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <Button variant="outline" className="h-auto py-4 justify-start gap-3" onClick={() => navigate('/juge/instructions')}>
+                <MessageSquare className="w-6 h-6 text-primary" />
+                <div className="text-left">
+                  <span className="font-semibold block">Instructions au greffe</span>
+                  <span className="text-xs text-muted-foreground">Reporter une audience, demander des pièces</span>
+                </div>
+              </Button>
+              <Button variant="outline" className="h-auto py-4 justify-start gap-3" onClick={() => navigate('/juge/stats')}>
+                <BarChart3 className="w-6 h-6 text-primary" />
+                <div className="text-left">
+                  <span className="font-semibold block">Mes statistiques</span>
+                  <span className="text-xs text-muted-foreground">Performance et indicateurs</span>
+                </div>
               </Button>
             </div>
           </CardContent>

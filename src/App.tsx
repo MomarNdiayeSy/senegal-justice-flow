@@ -24,6 +24,10 @@ import GreffierDashboard from "./pages/greffier/Dashboard";
 
 // Juge pages
 import JugeDashboard from "./pages/juge/Dashboard";
+import JugeDecisions from "./pages/juge/Decisions";
+import JugeDecisionHistory from "./pages/juge/DecisionHistory";
+import JugeInstructions from "./pages/juge/Instructions";
+import JugeStats from "./pages/juge/Stats";
 
 // Procureur pages
 import ProcureurDashboard from "./pages/procureur/Dashboard";
@@ -98,6 +102,26 @@ const App = () => (
             <Route path="/juge/dashboard" element={
               <ProtectedRoute allowedRoles={["juge"]}>
                 <JugeDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/juge/decisions" element={
+              <ProtectedRoute allowedRoles={["juge"]}>
+                <JugeDecisions />
+              </ProtectedRoute>
+            } />
+            <Route path="/juge/historique-decisions" element={
+              <ProtectedRoute allowedRoles={["juge"]}>
+                <JugeDecisionHistory />
+              </ProtectedRoute>
+            } />
+            <Route path="/juge/instructions" element={
+              <ProtectedRoute allowedRoles={["juge"]}>
+                <JugeInstructions />
+              </ProtectedRoute>
+            } />
+            <Route path="/juge/stats" element={
+              <ProtectedRoute allowedRoles={["juge"]}>
+                <JugeStats />
               </ProtectedRoute>
             } />
 
