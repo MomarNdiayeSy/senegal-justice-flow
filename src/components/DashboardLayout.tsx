@@ -13,7 +13,10 @@ import {
   Settings,
   Bell,
   Shield,
-  FileText
+  FileText,
+  PenTool,
+  History,
+  MessageSquare
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -50,7 +53,14 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       { icon: Calendar, label: "Tableau de bord", path: roleBasePath, roles: ["admin", "greffier", "juge", "procureur", "avocat", "justiciable"] },
       { icon: Calendar, label: "Audiences", path: "/dashboard/audiences", roles: ["admin", "greffier", "juge", "procureur", "avocat", "justiciable"] },
       { icon: FileText, label: "Dossiers", path: "/dashboard/dossiers", roles: ["admin", "greffier", "juge", "procureur", "avocat"] },
+      // Menu spécifique Juge
+      { icon: PenTool, label: "Mes Décisions", path: "/juge/decisions", roles: ["juge"] },
+      { icon: History, label: "Historique Décisions", path: "/juge/historique-decisions", roles: ["juge"] },
+      { icon: MessageSquare, label: "Instructions Greffe", path: "/juge/instructions", roles: ["juge"] },
+      { icon: BarChart3, label: "Mes Statistiques", path: "/juge/stats", roles: ["juge"] },
+      // Notifications
       { icon: Bell, label: "Notifications", path: "/dashboard/notifications", roles: ["admin", "greffier", "juge", "procureur", "avocat", "justiciable"] },
+      // Admin only
       { icon: BarChart3, label: "Statistiques", path: "/admin/stats", roles: ["admin"] },
       { icon: Users, label: "Utilisateurs", path: "/admin/users", roles: ["admin"] },
       { icon: Shield, label: "Audit", path: "/admin/audit", roles: ["admin"] },
