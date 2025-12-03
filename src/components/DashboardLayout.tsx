@@ -16,7 +16,8 @@ import {
   FileText,
   PenTool,
   History,
-  MessageSquare
+  MessageSquare,
+  CheckCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -53,6 +54,12 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       { icon: Calendar, label: "Tableau de bord", path: roleBasePath, roles: ["admin", "greffier", "juge", "procureur", "avocat", "justiciable"] },
       { icon: Calendar, label: "Audiences", path: "/dashboard/audiences", roles: ["admin", "greffier", "juge", "procureur", "avocat", "justiciable"] },
       { icon: FileText, label: "Dossiers", path: "/dashboard/dossiers", roles: ["admin", "greffier", "juge", "procureur", "avocat"] },
+      // Menu spécifique Greffier
+      { icon: Users, label: "Utilisateurs", path: "/greffier/users", roles: ["greffier"] },
+      { icon: Scale, label: "Validation Décisions", path: "/greffier/validation-decisions", roles: ["greffier"] },
+      { icon: MessageSquare, label: "Instructions Juges", path: "/greffier/instructions", roles: ["greffier"] },
+      { icon: Monitor, label: "Tableau Affichage", path: "/greffier/affichage", roles: ["greffier"] },
+      { icon: BarChart3, label: "Rapports", path: "/greffier/stats", roles: ["greffier"] },
       // Menu spécifique Juge
       { icon: PenTool, label: "Mes Décisions", path: "/juge/decisions", roles: ["juge"] },
       { icon: History, label: "Historique Décisions", path: "/juge/historique-decisions", roles: ["juge"] },
