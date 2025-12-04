@@ -17,7 +17,8 @@ import {
   PenTool,
   History,
   MessageSquare,
-  CheckCircle
+  CheckCircle,
+  Building2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -56,6 +57,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       { icon: FileText, label: "Dossiers", path: "/dashboard/dossiers", roles: ["admin", "greffier", "juge", "procureur", "avocat"] },
       // Menu spécifique Greffier
       { icon: Users, label: "Utilisateurs", path: "/greffier/users", roles: ["greffier"] },
+      { icon: Building2, label: "Gestion Salles", path: "/greffier/gestion-salles", roles: ["greffier"] },
       { icon: Scale, label: "Validation Décisions", path: "/greffier/validation-decisions", roles: ["greffier"] },
       { icon: MessageSquare, label: "Instructions Juges", path: "/greffier/instructions", roles: ["greffier"] },
       { icon: Bell, label: "Envoi Notifications", path: "/greffier/envoi-notifications", roles: ["greffier"] },
