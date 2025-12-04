@@ -17,17 +17,30 @@ import {
   PenTool,
   History,
   MessageSquare,
-  CheckCircle,
-  Building2
+  Building2,
+  Home,
+  Briefcase,
+  Gavel,
+  FolderOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { useApp } from "@/contexts/AppContext";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
+}
+
+interface MenuSection {
+  title: string;
+  items: {
+    icon: React.ComponentType<{ className?: string }>;
+    label: string;
+    path: string;
+  }[];
 }
 
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
@@ -45,57 +58,172 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     n => !n.lue && (!currentUser || n.destinataireId === currentUser.id)
   ).length;
 
-  // Menu dynamique selon le rôle
-  const getMenuItems = () => {
+  // Menu organisé par sections selon le rôle
+  const getMenuSections = (): MenuSection[] => {
     if (!currentUser) return [];
 
-    const roleBasePath = `/${currentUser.role}/dashboard`;
-    
-    const baseItems = [
-      { icon: Calendar, label: "Tableau de bord", path: roleBasePath, roles: ["admin", "greffier", "juge", "procureur", "avocat", "justiciable"] },
-      { icon: Calendar, label: "Audiences", path: "/dashboard/audiences", roles: ["admin", "greffier", "juge", "procureur", "avocat", "justiciable"] },
-      { icon: FileText, label: "Dossiers", path: "/dashboard/dossiers", roles: ["admin", "greffier", "juge", "procureur", "avocat"] },
-      // Menu spécifique Greffier
-      { icon: Users, label: "Utilisateurs", path: "/greffier/users", roles: ["greffier"] },
-      { icon: Building2, label: "Gestion Salles", path: "/greffier/gestion-salles", roles: ["greffier"] },
-      { icon: Scale, label: "Validation Décisions", path: "/greffier/validation-decisions", roles: ["greffier"] },
-      { icon: MessageSquare, label: "Instructions Juges", path: "/greffier/instructions", roles: ["greffier"] },
-      { icon: Bell, label: "Envoi Notifications", path: "/greffier/envoi-notifications", roles: ["greffier"] },
-      { icon: Monitor, label: "Tableau Affichage", path: "/greffier/affichage", roles: ["greffier"] },
-      { icon: BarChart3, label: "Rapports", path: "/greffier/stats", roles: ["greffier"] },
-      // Menu spécifique Juge
-      { icon: PenTool, label: "Mes Décisions", path: "/juge/decisions", roles: ["juge"] },
-      { icon: History, label: "Historique Décisions", path: "/juge/historique-decisions", roles: ["juge"] },
-      { icon: MessageSquare, label: "Instructions Greffe", path: "/juge/instructions", roles: ["juge"] },
-      { icon: BarChart3, label: "Mes Statistiques", path: "/juge/stats", roles: ["juge"] },
-      // Menu spécifique Procureur
-      { icon: FileText, label: "Affaires Parquet", path: "/procureur/affaires", roles: ["procureur"] },
-      { icon: Scale, label: "Décisions Justice", path: "/procureur/decisions", roles: ["procureur"] },
-      { icon: BarChart3, label: "Rapports", path: "/procureur/stats", roles: ["procureur"] },
-      // Menu spécifique Avocat
-      { icon: FileText, label: "Mes Affaires", path: "/avocat/affaires", roles: ["avocat"] },
-      { icon: PenTool, label: "Documents", path: "/avocat/documents", roles: ["avocat"] },
-      { icon: Scale, label: "Décisions Clients", path: "/avocat/decisions-clients", roles: ["avocat"] },
-      // Menu spécifique Justiciable
-      { icon: FileText, label: "Mon Dossier", path: "/justiciable/mon-dossier", roles: ["justiciable"] },
-      { icon: Scale, label: "Décisions", path: "/justiciable/decisions", roles: ["justiciable"] },
-      { icon: Monitor, label: "Tableau Affichage", path: "/justiciable/tableau-affichage", roles: ["justiciable"] },
-      // Notifications
-      { icon: Bell, label: "Notifications", path: "/dashboard/notifications", roles: ["admin", "greffier", "juge", "procureur", "avocat", "justiciable"] },
-      // Admin only
-      { icon: BarChart3, label: "Statistiques", path: "/admin/stats", roles: ["admin"] },
-      { icon: Users, label: "Utilisateurs", path: "/admin/users", roles: ["admin"] },
-      { icon: Shield, label: "Audit", path: "/admin/audit", roles: ["admin"] },
-      { icon: Monitor, label: "Affichage public", path: "/public-display", roles: ["admin", "greffier", "juge", "procureur", "avocat", "justiciable"] },
-    ];
+    const role = currentUser.role;
+    const sections: MenuSection[] = [];
 
-    // Filtrer les éléments du menu selon le rôle de l'utilisateur
-    return baseItems.filter(item => 
-      item.roles.includes(currentUser.role)
-    );
+    // Section principale - commune à tous
+    sections.push({
+      title: "Principal",
+      items: [
+        { icon: Home, label: "Tableau de bord", path: `/${role}/dashboard` },
+      ]
+    });
+
+    // Section Gestion - selon le rôle
+    if (role === "admin") {
+      sections.push({
+        title: "Supervision Nationale",
+        items: [
+          { icon: BarChart3, label: "Statistiques", path: "/admin/stats" },
+          { icon: Users, label: "Utilisateurs", path: "/admin/users" },
+          { icon: Shield, label: "Audit Système", path: "/admin/audit" },
+        ]
+      });
+    }
+
+    if (role === "greffier") {
+      sections.push({
+        title: "Gestion Administrative",
+        items: [
+          { icon: Calendar, label: "Audiences", path: "/dashboard/audiences" },
+          { icon: Building2, label: "Gestion Salles", path: "/greffier/gestion-salles" },
+          { icon: FolderOpen, label: "Dossiers", path: "/dashboard/dossiers" },
+          { icon: Users, label: "Utilisateurs", path: "/greffier/users" },
+        ]
+      });
+      sections.push({
+        title: "Traitement Judiciaire",
+        items: [
+          { icon: Gavel, label: "Validation Décisions", path: "/greffier/validation-decisions" },
+          { icon: MessageSquare, label: "Instructions Juges", path: "/greffier/instructions" },
+        ]
+      });
+      sections.push({
+        title: "Communication",
+        items: [
+          { icon: Bell, label: "Envoi Notifications", path: "/greffier/envoi-notifications" },
+          { icon: Monitor, label: "Tableau Affichage", path: "/greffier/affichage" },
+        ]
+      });
+      sections.push({
+        title: "Rapports",
+        items: [
+          { icon: BarChart3, label: "Statistiques", path: "/greffier/stats" },
+        ]
+      });
+    }
+
+    if (role === "juge") {
+      sections.push({
+        title: "Mes Affaires",
+        items: [
+          { icon: Calendar, label: "Audiences", path: "/dashboard/audiences" },
+          { icon: FolderOpen, label: "Dossiers", path: "/dashboard/dossiers" },
+        ]
+      });
+      sections.push({
+        title: "Décisions",
+        items: [
+          { icon: PenTool, label: "Rédiger Décision", path: "/juge/decisions" },
+          { icon: History, label: "Historique", path: "/juge/historique-decisions" },
+        ]
+      });
+      sections.push({
+        title: "Communication",
+        items: [
+          { icon: MessageSquare, label: "Instructions Greffe", path: "/juge/instructions" },
+        ]
+      });
+      sections.push({
+        title: "Rapports",
+        items: [
+          { icon: BarChart3, label: "Mes Statistiques", path: "/juge/stats" },
+        ]
+      });
+    }
+
+    if (role === "procureur") {
+      sections.push({
+        title: "Ministère Public",
+        items: [
+          { icon: Briefcase, label: "Affaires Parquet", path: "/procureur/affaires" },
+          { icon: Calendar, label: "Audiences", path: "/dashboard/audiences" },
+          { icon: FolderOpen, label: "Dossiers", path: "/dashboard/dossiers" },
+        ]
+      });
+      sections.push({
+        title: "Décisions",
+        items: [
+          { icon: Gavel, label: "Décisions Justice", path: "/procureur/decisions" },
+        ]
+      });
+      sections.push({
+        title: "Rapports",
+        items: [
+          { icon: BarChart3, label: "Statistiques", path: "/procureur/stats" },
+        ]
+      });
+    }
+
+    if (role === "avocat") {
+      sections.push({
+        title: "Gestion Clients",
+        items: [
+          { icon: Briefcase, label: "Mes Affaires", path: "/avocat/affaires" },
+          { icon: Calendar, label: "Audiences", path: "/dashboard/audiences" },
+          { icon: FolderOpen, label: "Dossiers", path: "/dashboard/dossiers" },
+        ]
+      });
+      sections.push({
+        title: "Documents",
+        items: [
+          { icon: FileText, label: "Pièces & Conclusions", path: "/avocat/documents" },
+          { icon: Gavel, label: "Décisions Clients", path: "/avocat/decisions-clients" },
+        ]
+      });
+    }
+
+    if (role === "justiciable") {
+      sections.push({
+        title: "Mon Dossier",
+        items: [
+          { icon: FolderOpen, label: "Suivi Dossier", path: "/justiciable/mon-dossier" },
+          { icon: Calendar, label: "Mes Audiences", path: "/dashboard/audiences" },
+        ]
+      });
+      sections.push({
+        title: "Informations",
+        items: [
+          { icon: Gavel, label: "Décisions", path: "/justiciable/decisions" },
+          { icon: Monitor, label: "Tableau Affichage", path: "/justiciable/tableau-affichage" },
+        ]
+      });
+    }
+
+    // Section commune - Notifications (pour tous sauf peut-être ajustements)
+    sections.push({
+      title: "Notifications",
+      items: [
+        { icon: Bell, label: "Mes Notifications", path: "/dashboard/notifications" },
+      ]
+    });
+
+    // Affichage public - accessible à tous
+    sections.push({
+      title: "Accès Public",
+      items: [
+        { icon: Monitor, label: "Affichage Public", path: "/public-display" },
+      ]
+    });
+
+    return sections;
   };
 
-  const menuItems = getMenuItems();
+  const menuSections = getMenuSections();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -109,6 +237,18 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       justiciable: "Justiciable"
     };
     return roles[role] || role;
+  };
+
+  const getRoleColor = (role: string) => {
+    const colors: Record<string, string> = {
+      admin: "bg-red-500/20 text-red-200",
+      greffier: "bg-blue-500/20 text-blue-200",
+      juge: "bg-purple-500/20 text-purple-200",
+      procureur: "bg-orange-500/20 text-orange-200",
+      avocat: "bg-green-500/20 text-green-200",
+      justiciable: "bg-cyan-500/20 text-cyan-200"
+    };
+    return colors[role] || "bg-gray-500/20 text-gray-200";
   };
 
   return (
@@ -131,17 +271,20 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           x: sidebarOpen ? 0 : -280,
           width: 280 
         }}
-        className="gradient-hero text-primary-foreground shadow-elegant fixed lg:relative z-50 h-screen lg:z-10 lg:translate-x-0"
+        className="gradient-hero text-primary-foreground shadow-elegant fixed lg:relative z-50 h-screen lg:z-10 lg:translate-x-0 flex flex-col"
         style={{ width: sidebarOpen ? 280 : 0 }}
       >
-        <div className="p-6 flex items-center justify-between border-b border-white/10">
+        {/* Header */}
+        <div className="p-4 flex items-center justify-between border-b border-white/10">
           {sidebarOpen && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="flex items-center gap-3"
             >
-              <Scale className="w-8 h-8 text-accent" />
+              <div className="p-2 bg-accent/20 rounded-lg">
+                <Scale className="w-6 h-6 text-accent" />
+              </div>
               <div>
                 <h2 className="font-bold text-lg">e-Justice</h2>
                 <p className="text-xs opacity-75">Sénégal</p>
@@ -158,42 +301,82 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           </Button>
         </div>
 
-        <nav className="p-4 space-y-2">
-          {menuItems.map((item) => (
-            <motion.div
-              key={item.path}
-              whileHover={{ x: 5 }}
-              className={cn(
-                "flex items-center gap-3 p-3 rounded-lg transition-smooth cursor-pointer relative",
-                isActive(item.path)
-                  ? "bg-accent text-accent-foreground shadow-gold"
-                  : "hover:bg-white/10"
-              )}
-              onClick={() => navigate(item.path)}
+        {/* User Info */}
+        {sidebarOpen && currentUser && (
+          <div className="p-4 border-b border-white/10">
+            <div 
+              className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-all"
+              onClick={() => navigate("/dashboard/profile")}
             >
-              <item.icon className="w-5 h-5 flex-shrink-0" />
-              {sidebarOpen && (
-                <motion.span
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="font-medium flex-1"
-                >
-                  {item.label}
-                </motion.span>
-              )}
-              {item.label === "Notifications" && unreadNotifications > 0 && (
-                <Badge className="bg-destructive hover:bg-destructive text-white px-2 py-0 text-xs">
-                  {unreadNotifications}
+              <Avatar className="w-10 h-10 ring-2 ring-accent/30">
+                <AvatarImage src={currentUser.photo} alt={currentUser.nom} />
+                <AvatarFallback className="bg-accent text-accent-foreground font-bold text-sm">
+                  {currentUser.prenom[0]}{currentUser.nom[0]}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm truncate">
+                  {currentUser.prenom} {currentUser.nom}
+                </p>
+                <Badge className={cn("text-xs mt-1", getRoleColor(currentUser.role))}>
+                  {getRoleLabel(currentUser.role)}
                 </Badge>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto p-3 space-y-4">
+          {menuSections.map((section, sectionIndex) => (
+            <div key={section.title}>
+              {sectionIndex > 0 && <Separator className="bg-white/10 mb-3" />}
+              {sidebarOpen && (
+                <p className="text-xs uppercase tracking-wider text-white/50 font-medium px-3 mb-2">
+                  {section.title}
+                </p>
               )}
-            </motion.div>
+              <div className="space-y-1">
+                {section.items.map((item) => (
+                  <motion.div
+                    key={item.path}
+                    whileHover={{ x: 3 }}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all cursor-pointer relative",
+                      isActive(item.path)
+                        ? "bg-accent text-accent-foreground shadow-gold"
+                        : "hover:bg-white/10"
+                    )}
+                    onClick={() => navigate(item.path)}
+                  >
+                    <item.icon className="w-5 h-5 flex-shrink-0" />
+                    {sidebarOpen && (
+                      <motion.span
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="font-medium text-sm flex-1"
+                      >
+                        {item.label}
+                      </motion.span>
+                    )}
+                    {item.label === "Mes Notifications" && unreadNotifications > 0 && (
+                      <Badge className="bg-destructive hover:bg-destructive text-white px-2 py-0 text-xs">
+                        {unreadNotifications}
+                      </Badge>
+                    )}
+                  </motion.div>
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 space-y-2 border-t border-white/10">
+        {/* Footer */}
+        <div className="p-3 space-y-1 border-t border-white/10">
           <Button
             variant="ghost"
-            className="w-full justify-start hover:bg-white/10"
+            size="sm"
+            className="w-full justify-start hover:bg-white/10 h-10"
             onClick={() => navigate("/dashboard/settings")}
           >
             <Settings className="w-5 h-5 mr-3" />
@@ -201,7 +384,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           </Button>
           <Button
             variant="ghost"
-            className="w-full justify-start hover:bg-white/10 text-red-300 hover:text-red-200"
+            size="sm"
+            className="w-full justify-start hover:bg-white/10 text-red-300 hover:text-red-200 h-10"
             onClick={handleLogout}
           >
             <LogOut className="w-5 h-5 mr-3" />
