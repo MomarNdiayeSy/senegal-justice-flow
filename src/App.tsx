@@ -42,6 +42,9 @@ import ProcureurStats from "./pages/procureur/Stats";
 
 // Avocat pages
 import AvocatDashboard from "./pages/avocat/Dashboard";
+import AvocatAffaires from "./pages/avocat/Affaires";
+import AvocatDocuments from "./pages/avocat/Documents";
+import AvocatDecisionsClients from "./pages/avocat/DecisionsClients";
 
 // Justiciable pages
 import JusticiableDashboard from "./pages/justiciable/Dashboard";
@@ -184,6 +187,21 @@ const App = () => (
             <Route path="/avocat/dashboard" element={
               <ProtectedRoute allowedRoles={["avocat"]}>
                 <AvocatDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/avocat/affaires" element={
+              <ProtectedRoute allowedRoles={["avocat"]}>
+                <AvocatAffaires />
+              </ProtectedRoute>
+            } />
+            <Route path="/avocat/documents" element={
+              <ProtectedRoute allowedRoles={["avocat"]}>
+                <AvocatDocuments />
+              </ProtectedRoute>
+            } />
+            <Route path="/avocat/decisions-clients" element={
+              <ProtectedRoute allowedRoles={["avocat"]}>
+                <AvocatDecisionsClients />
               </ProtectedRoute>
             } />
 
