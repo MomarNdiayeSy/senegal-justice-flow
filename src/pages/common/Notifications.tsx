@@ -82,20 +82,62 @@ const Notifications = () => {
 
   const getIcon = (type: string) => {
     const iconMap: Record<string, any> = {
+      // Audiences
       audience_creee: Calendar,
       audience_reportee: Clock,
       audience_annulee: AlertCircle,
+      rappel_audience: Bell,
+      // Dossiers
+      dossier_cree: FileText,
       dossier_modifie: FileText,
+      dossier_clos: FileText,
+      piece_ajoutee: FileText,
+      assignation_nouveau_dossier: Users,
+      // Décisions
+      decision_rendue: FileText,
+      decision_validee: CheckCircle,
+      decision_publiee: Send,
+      // Instructions
+      instruction_envoyee: Send,
+      instruction_traitee: CheckCircle,
+      // Procédures
+      convocation_recue: Calendar,
+      echeance_proche: Clock,
+      commentaire_ajoute: FileText,
+      // Administration
+      utilisateur_cree: Users,
+      alerte_securite: AlertCircle,
     };
     return iconMap[type] || Bell;
   };
 
   const getTypeColor = (type: string) => {
     const colorMap: Record<string, string> = {
+      // Audiences
       audience_creee: "bg-blue-500",
       audience_reportee: "bg-amber-500",
       audience_annulee: "bg-red-500",
-      dossier_modifie: "bg-purple-500",
+      rappel_audience: "bg-cyan-500",
+      // Dossiers
+      dossier_cree: "bg-purple-500",
+      dossier_modifie: "bg-indigo-500",
+      dossier_clos: "bg-gray-500",
+      piece_ajoutee: "bg-teal-500",
+      assignation_nouveau_dossier: "bg-violet-500",
+      // Décisions
+      decision_rendue: "bg-emerald-500",
+      decision_validee: "bg-green-500",
+      decision_publiee: "bg-lime-500",
+      // Instructions
+      instruction_envoyee: "bg-orange-500",
+      instruction_traitee: "bg-yellow-500",
+      // Procédures
+      convocation_recue: "bg-sky-500",
+      echeance_proche: "bg-rose-500",
+      commentaire_ajoute: "bg-slate-500",
+      // Administration
+      utilisateur_cree: "bg-fuchsia-500",
+      alerte_securite: "bg-red-600",
     };
     return colorMap[type] || "bg-gray-500";
   };
@@ -112,10 +154,31 @@ const Notifications = () => {
 
   const getTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
+      // Audiences
       audience_creee: "Audience créée",
       audience_reportee: "Audience reportée",
       audience_annulee: "Audience annulée",
+      rappel_audience: "Rappel audience",
+      // Dossiers
+      dossier_cree: "Dossier créé",
       dossier_modifie: "Dossier modifié",
+      dossier_clos: "Dossier clôturé",
+      piece_ajoutee: "Pièce ajoutée",
+      assignation_nouveau_dossier: "Assignation dossier",
+      // Décisions
+      decision_rendue: "Décision rendue",
+      decision_validee: "Décision validée",
+      decision_publiee: "Décision publiée",
+      // Instructions
+      instruction_envoyee: "Instruction envoyée",
+      instruction_traitee: "Instruction traitée",
+      // Procédures
+      convocation_recue: "Convocation",
+      echeance_proche: "Échéance proche",
+      commentaire_ajoute: "Commentaire ajouté",
+      // Administration
+      utilisateur_cree: "Utilisateur créé",
+      alerte_securite: "Alerte sécurité",
     };
     return labels[type] || "Notification";
   };
@@ -193,17 +256,38 @@ const Notifications = () => {
               <Separator />
 
               {/* Filters */}
-              <div className="flex flex-col md:flex-row gap-3">
+              <div className="flex flex-col md:flex-row gap-3 flex-wrap">
                 <Select value={typeFilter} onValueChange={setTypeFilter}>
-                  <SelectTrigger className="w-full md:w-[200px]">
+                  <SelectTrigger className="w-full md:w-[220px]">
                     <SelectValue placeholder="Type" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="tous">Tous les types</SelectItem>
+                    <SelectItem value="__sep_1" disabled>— Audiences —</SelectItem>
                     <SelectItem value="audience_creee">📅 Audience créée</SelectItem>
                     <SelectItem value="audience_reportee">⏰ Audience reportée</SelectItem>
                     <SelectItem value="audience_annulee">❌ Audience annulée</SelectItem>
+                    <SelectItem value="rappel_audience">🔔 Rappel audience</SelectItem>
+                    <SelectItem value="__sep_2" disabled>— Dossiers —</SelectItem>
+                    <SelectItem value="dossier_cree">📁 Dossier créé</SelectItem>
                     <SelectItem value="dossier_modifie">📝 Dossier modifié</SelectItem>
+                    <SelectItem value="dossier_clos">📦 Dossier clôturé</SelectItem>
+                    <SelectItem value="piece_ajoutee">📎 Pièce ajoutée</SelectItem>
+                    <SelectItem value="assignation_nouveau_dossier">👥 Assignation dossier</SelectItem>
+                    <SelectItem value="__sep_3" disabled>— Décisions —</SelectItem>
+                    <SelectItem value="decision_rendue">⚖️ Décision rendue</SelectItem>
+                    <SelectItem value="decision_validee">✅ Décision validée</SelectItem>
+                    <SelectItem value="decision_publiee">📢 Décision publiée</SelectItem>
+                    <SelectItem value="__sep_4" disabled>— Instructions —</SelectItem>
+                    <SelectItem value="instruction_envoyee">📤 Instruction envoyée</SelectItem>
+                    <SelectItem value="instruction_traitee">✔️ Instruction traitée</SelectItem>
+                    <SelectItem value="__sep_5" disabled>— Procédures —</SelectItem>
+                    <SelectItem value="convocation_recue">📨 Convocation</SelectItem>
+                    <SelectItem value="echeance_proche">⏳ Échéance proche</SelectItem>
+                    <SelectItem value="commentaire_ajoute">💬 Commentaire</SelectItem>
+                    <SelectItem value="__sep_6" disabled>— Administration —</SelectItem>
+                    <SelectItem value="utilisateur_cree">👤 Utilisateur créé</SelectItem>
+                    <SelectItem value="alerte_securite">🔒 Alerte sécurité</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -225,9 +309,11 @@ const Notifications = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="tous">Tous les rôles</SelectItem>
+                    <SelectItem value="admin">👑 Administrateur</SelectItem>
                     <SelectItem value="juge">⚖️ Juge</SelectItem>
-                    <SelectItem value="avocat">👔 Avocat</SelectItem>
                     <SelectItem value="greffier">📋 Greffier</SelectItem>
+                    <SelectItem value="procureur">🏛️ Procureur</SelectItem>
+                    <SelectItem value="avocat">👔 Avocat</SelectItem>
                     <SelectItem value="justiciable">👤 Justiciable</SelectItem>
                   </SelectContent>
                 </Select>

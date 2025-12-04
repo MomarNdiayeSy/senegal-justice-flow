@@ -82,35 +82,59 @@ export interface NotificationPreferences {
     whatsapp: boolean;
   };
   types: {
+    // Audiences
     audience_creee: boolean;
     audience_reportee: boolean;
     audience_annulee: boolean;
+    rappel_audience: boolean;
+    // Dossiers
     dossier_cree: boolean;
     dossier_modifie: boolean;
     dossier_clos: boolean;
     piece_ajoutee: boolean;
+    assignation_nouveau_dossier: boolean;
+    // Décisions
     decision_rendue: boolean;
+    decision_validee: boolean;
+    decision_publiee: boolean;
+    // Instructions
+    instruction_envoyee: boolean;
+    instruction_traitee: boolean;
+    // Procédures
     convocation_recue: boolean;
     echeance_proche: boolean;
     commentaire_ajoute: boolean;
-    assignation_nouveau_dossier: boolean;
+    // Administration
+    utilisateur_cree: boolean;
+    alerte_securite: boolean;
   };
 }
 
+export type NotificationType = 
+  | "audience_creee" | "audience_reportee" | "audience_annulee" | "rappel_audience"
+  | "dossier_cree" | "dossier_modifie" | "dossier_clos" | "piece_ajoutee" | "assignation_nouveau_dossier"
+  | "decision_rendue" | "decision_validee" | "decision_publiee"
+  | "instruction_envoyee" | "instruction_traitee"
+  | "convocation_recue" | "echeance_proche" | "commentaire_ajoute"
+  | "utilisateur_cree" | "alerte_securite";
+
 export interface Notification {
   id: string;
-  type: "audience_creee" | "audience_reportee" | "audience_annulee" | "dossier_cree" | "dossier_modifie" | "dossier_clos" | "piece_ajoutee" | "decision_rendue" | "convocation_recue" | "echeance_proche" | "commentaire_ajoute" | "assignation_nouveau_dossier";
+  type: NotificationType;
   titre: string;
   message: string;
   date: string;
   destinataireId: string;
   lue: boolean;
   audienceId?: string;
+  dossierId?: string;
+  decisionId?: string;
   statut: "envoye" | "echoue" | "en_attente";
   canal: "email" | "sms" | "whatsapp";
   tentatives: number;
   derniereTentative?: string;
   erreur?: string;
+  priorite?: "haute" | "normale" | "basse";
 }
 
 export interface LogAudit {
@@ -378,16 +402,23 @@ const mockNotificationPreferences: NotificationPreferences[] = [
     types: { 
       audience_creee: true, 
       audience_reportee: true, 
-      audience_annulee: true, 
+      audience_annulee: true,
+      rappel_audience: true,
       dossier_cree: true,
       dossier_modifie: true,
       dossier_clos: true,
       piece_ajoutee: true,
+      assignation_nouveau_dossier: true,
       decision_rendue: true,
+      decision_validee: true,
+      decision_publiee: true,
+      instruction_envoyee: true,
+      instruction_traitee: true,
       convocation_recue: true,
       echeance_proche: true,
       commentaire_ajoute: false,
-      assignation_nouveau_dossier: true
+      utilisateur_cree: true,
+      alerte_securite: true
     }
   },
   {
@@ -396,16 +427,23 @@ const mockNotificationPreferences: NotificationPreferences[] = [
     types: { 
       audience_creee: true, 
       audience_reportee: true, 
-      audience_annulee: true, 
+      audience_annulee: true,
+      rappel_audience: true,
       dossier_cree: true,
       dossier_modifie: true,
       dossier_clos: true,
       piece_ajoutee: true,
+      assignation_nouveau_dossier: true,
       decision_rendue: true,
+      decision_validee: true,
+      decision_publiee: true,
+      instruction_envoyee: true,
+      instruction_traitee: true,
       convocation_recue: true,
       echeance_proche: true,
       commentaire_ajoute: false,
-      assignation_nouveau_dossier: true
+      utilisateur_cree: false,
+      alerte_securite: true
     }
   },
   {
@@ -414,16 +452,23 @@ const mockNotificationPreferences: NotificationPreferences[] = [
     types: { 
       audience_creee: true, 
       audience_reportee: true, 
-      audience_annulee: true, 
+      audience_annulee: true,
+      rappel_audience: true,
       dossier_cree: true,
       dossier_modifie: true,
       dossier_clos: true,
       piece_ajoutee: true,
+      assignation_nouveau_dossier: true,
       decision_rendue: true,
+      decision_validee: true,
+      decision_publiee: true,
+      instruction_envoyee: true,
+      instruction_traitee: true,
       convocation_recue: true,
       echeance_proche: true,
       commentaire_ajoute: false,
-      assignation_nouveau_dossier: true
+      utilisateur_cree: false,
+      alerte_securite: true
     }
   },
   {
@@ -432,16 +477,23 @@ const mockNotificationPreferences: NotificationPreferences[] = [
     types: { 
       audience_creee: true, 
       audience_reportee: true, 
-      audience_annulee: true, 
+      audience_annulee: true,
+      rappel_audience: true,
       dossier_cree: true,
       dossier_modifie: false,
       dossier_clos: true,
       piece_ajoutee: true,
+      assignation_nouveau_dossier: false,
       decision_rendue: true,
+      decision_validee: false,
+      decision_publiee: true,
+      instruction_envoyee: false,
+      instruction_traitee: false,
       convocation_recue: true,
       echeance_proche: true,
       commentaire_ajoute: false,
-      assignation_nouveau_dossier: false
+      utilisateur_cree: false,
+      alerte_securite: false
     }
   }
 ];
@@ -713,16 +765,23 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         types: preferences.types || { 
           audience_creee: true, 
           audience_reportee: true, 
-          audience_annulee: true, 
+          audience_annulee: true,
+          rappel_audience: true,
           dossier_cree: true,
           dossier_modifie: true,
           dossier_clos: true,
           piece_ajoutee: true,
+          assignation_nouveau_dossier: true,
           decision_rendue: true,
+          decision_validee: true,
+          decision_publiee: true,
+          instruction_envoyee: true,
+          instruction_traitee: true,
           convocation_recue: true,
           echeance_proche: true,
           commentaire_ajoute: false,
-          assignation_nouveau_dossier: true
+          utilisateur_cree: false,
+          alerte_securite: true
         }
       };
       setNotificationPreferences([...notificationPreferences, newPref]);
