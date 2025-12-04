@@ -271,23 +271,30 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           x: sidebarOpen ? 0 : -280,
           width: 280 
         }}
-        className="gradient-hero text-primary-foreground shadow-elegant fixed lg:relative z-50 h-screen lg:z-10 lg:translate-x-0 flex flex-col"
+        className="bg-gradient-to-b from-primary via-primary to-primary/95 text-primary-foreground shadow-2xl fixed lg:relative z-50 h-screen lg:z-10 lg:translate-x-0 flex flex-col"
         style={{ width: sidebarOpen ? 280 : 0 }}
       >
+        {/* Decorative background pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-0 right-0 w-40 h-40 bg-accent rounded-full blur-3xl" />
+          <div className="absolute bottom-20 left-0 w-32 h-32 bg-accent rounded-full blur-2xl" />
+        </div>
+
         {/* Header */}
-        <div className="p-4 flex items-center justify-between border-b border-white/10">
+        <div className="relative p-5 flex items-center justify-between border-b border-white/10">
           {sidebarOpen && (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3 }}
               className="flex items-center gap-3"
             >
-              <div className="p-2 bg-accent/20 rounded-lg">
-                <Scale className="w-6 h-6 text-accent" />
+              <div className="p-2.5 bg-accent rounded-xl shadow-gold">
+                <Scale className="w-6 h-6 text-accent-foreground" />
               </div>
               <div>
-                <h2 className="font-bold text-lg">e-Justice</h2>
-                <p className="text-xs opacity-75">Sénégal</p>
+                <h2 className="font-bold text-xl tracking-tight">e-Justice</h2>
+                <p className="text-xs text-white/60 font-medium">Sénégal</p>
               </div>
             </motion.div>
           )}
@@ -295,7 +302,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             variant="ghost"
             size="sm"
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="hover:bg-white/10"
+            className="hover:bg-white/10 rounded-lg transition-all duration-200"
           >
             {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </Button>
@@ -303,93 +310,113 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
         {/* User Info */}
         {sidebarOpen && currentUser && (
-          <div className="p-4 border-b border-white/10">
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+            className="relative p-4 mx-3 mt-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10"
+          >
             <div 
-              className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-all"
+              className="flex items-center gap-3 cursor-pointer hover:opacity-90 transition-all duration-200"
               onClick={() => navigate("/dashboard/profile")}
             >
-              <Avatar className="w-10 h-10 ring-2 ring-accent/30">
+              <Avatar className="w-11 h-11 ring-2 ring-accent/40 shadow-lg">
                 <AvatarImage src={currentUser.photo} alt={currentUser.nom} />
                 <AvatarFallback className="bg-accent text-accent-foreground font-bold text-sm">
                   {currentUser.prenom[0]}{currentUser.nom[0]}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm truncate">
+                <p className="font-semibold text-sm truncate">
                   {currentUser.prenom} {currentUser.nom}
                 </p>
-                <Badge className={cn("text-xs mt-1", getRoleColor(currentUser.role))}>
+                <Badge className={cn("text-xs mt-1 font-medium", getRoleColor(currentUser.role))}>
                   {getRoleLabel(currentUser.role)}
                 </Badge>
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto p-3 space-y-4">
+        <nav className="relative flex-1 overflow-y-auto p-3 mt-2 space-y-3 scrollbar-thin scrollbar-thumb-white/20">
           {menuSections.map((section, sectionIndex) => (
-            <div key={section.title}>
+            <motion.div 
+              key={section.title}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3, delay: sectionIndex * 0.05 }}
+            >
               {sectionIndex > 0 && <Separator className="bg-white/10 mb-3" />}
               {sidebarOpen && (
-                <p className="text-xs uppercase tracking-wider text-white/50 font-medium px-3 mb-2">
+                <p className="text-[10px] uppercase tracking-widest text-white/40 font-semibold px-3 mb-2">
                   {section.title}
                 </p>
               )}
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {section.items.map((item) => (
                   <motion.div
                     key={item.path}
-                    whileHover={{ x: 3 }}
+                    whileHover={{ x: 4 }}
+                    whileTap={{ scale: 0.98 }}
                     className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all cursor-pointer relative",
+                      "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 cursor-pointer relative group",
                       isActive(item.path)
-                        ? "bg-accent text-accent-foreground shadow-gold"
-                        : "hover:bg-white/10"
+                        ? "bg-accent text-accent-foreground shadow-gold font-medium"
+                        : "hover:bg-white/10 text-white/90 hover:text-white"
                     )}
                     onClick={() => navigate(item.path)}
                   >
-                    <item.icon className="w-5 h-5 flex-shrink-0" />
+                    {isActive(item.path) && (
+                      <motion.div
+                        layoutId="activeIndicator"
+                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-accent-foreground rounded-r-full"
+                      />
+                    )}
+                    <item.icon className={cn(
+                      "w-5 h-5 flex-shrink-0 transition-transform duration-200",
+                      !isActive(item.path) && "group-hover:scale-110"
+                    )} />
                     {sidebarOpen && (
                       <motion.span
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className="font-medium text-sm flex-1"
+                        className="text-sm flex-1"
                       >
                         {item.label}
                       </motion.span>
                     )}
                     {item.label === "Mes Notifications" && unreadNotifications > 0 && (
-                      <Badge className="bg-destructive hover:bg-destructive text-white px-2 py-0 text-xs">
+                      <Badge className="bg-destructive hover:bg-destructive text-white px-2 py-0 text-xs animate-pulse">
                         {unreadNotifications}
                       </Badge>
                     )}
                   </motion.div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           ))}
         </nav>
 
         {/* Footer */}
-        <div className="p-3 space-y-1 border-t border-white/10">
+        <div className="relative p-3 space-y-1 border-t border-white/10 bg-black/10">
           <Button
             variant="ghost"
             size="sm"
-            className="w-full justify-start hover:bg-white/10 h-10"
+            className="w-full justify-start hover:bg-white/10 h-11 rounded-xl transition-all duration-200"
             onClick={() => navigate("/dashboard/settings")}
           >
             <Settings className="w-5 h-5 mr-3" />
-            {sidebarOpen && "Paramètres"}
+            {sidebarOpen && <span className="text-sm">Paramètres</span>}
           </Button>
           <Button
             variant="ghost"
             size="sm"
-            className="w-full justify-start hover:bg-white/10 text-red-300 hover:text-red-200 h-10"
+            className="w-full justify-start hover:bg-red-500/20 text-red-300 hover:text-red-200 h-11 rounded-xl transition-all duration-200"
             onClick={handleLogout}
           >
             <LogOut className="w-5 h-5 mr-3" />
-            {sidebarOpen && "Déconnexion"}
+            {sidebarOpen && <span className="text-sm">Déconnexion</span>}
           </Button>
         </div>
       </motion.aside>
