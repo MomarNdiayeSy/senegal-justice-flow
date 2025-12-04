@@ -44,6 +44,11 @@ export interface Dossier {
   description: string;
   dateCreation: string;
   statut: "ouvert" | "en_cours" | "clos" | "archive";
+  // Parties du dossier
+  justiciableId?: string;
+  avocatIds?: string[];
+  jugeId?: string;
+  procureurId?: string;
   pieces: Array<{
     id: string;
     nom: string;
@@ -293,6 +298,9 @@ const mockDossiers: Dossier[] = [
     description: "Litige commercial concernant un contrat de vente",
     dateCreation: "2025-01-10",
     statut: "en_cours",
+    justiciableId: "6",
+    avocatIds: ["4"],
+    jugeId: "3",
     pieces: [
       {
         id: "1",
@@ -313,12 +321,34 @@ const mockDossiers: Dossier[] = [
       }
     ],
     audienceId: "1",
-    accessList: ["1", "2", "3", "4"],
+    accessList: ["1", "2", "3", "4", "6"],
     historique: [
       {
         date: "2025-01-10",
         action: "Création du dossier",
         details: "Dossier créé avec pièce jointe initiale",
+        userId: "2"
+      }
+    ]
+  },
+  {
+    id: "2",
+    numero: "DOS-2025-002",
+    titre: "Affaire Ndiaye vs Transport Dakar",
+    description: "Accident de circulation avec dommages corporels",
+    dateCreation: "2025-01-12",
+    statut: "en_cours",
+    justiciableId: "6",
+    avocatIds: ["4"],
+    jugeId: "3",
+    procureurId: "5",
+    pieces: [],
+    accessList: ["1", "2", "3", "4", "5", "6"],
+    historique: [
+      {
+        date: "2025-01-12",
+        action: "Création du dossier",
+        details: "Dossier ouvert suite à plainte",
         userId: "2"
       }
     ]
