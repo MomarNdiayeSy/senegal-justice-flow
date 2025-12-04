@@ -26,6 +26,7 @@ import GreffierValidationDecisions from "./pages/greffier/ValidationDecisions";
 import GreffierInstructions from "./pages/greffier/InstructionsGreffe";
 import GreffierStats from "./pages/greffier/Stats";
 import GreffierAffichage from "./pages/greffier/Affichage";
+import GreffierEnvoiNotifications from "./pages/greffier/EnvoiNotifications";
 
 // Juge pages
 import JugeDashboard from "./pages/juge/Dashboard";
@@ -134,6 +135,11 @@ const App = () => (
             <Route path="/greffier/affichage" element={
               <ProtectedRoute allowedRoles={["greffier"]}>
                 <GreffierAffichage />
+              </ProtectedRoute>
+            } />
+            <Route path="/greffier/envoi-notifications" element={
+              <ProtectedRoute allowedRoles={["greffier"]}>
+                <GreffierEnvoiNotifications />
               </ProtectedRoute>
             } />
 
