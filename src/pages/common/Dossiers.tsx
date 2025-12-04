@@ -70,8 +70,18 @@ const Dossiers = () => {
     statut: "en_cours" as Dossier["statut"],
     audienceId: "",
     pieces: [] as any[],
-    accessList: [] as string[]
+    accessList: [] as string[],
+    justiciableId: "",
+    avocatIds: [] as string[],
+    jugeId: "",
+    procureurId: ""
   });
+
+  // Filtrer les utilisateurs par rôle
+  const justiciables = users.filter(u => u.role === "justiciable");
+  const avocats = users.filter(u => u.role === "avocat");
+  const juges = users.filter(u => u.role === "juge");
+  const procureurs = users.filter(u => u.role === "procureur");
 
   // Auto-archivage des dossiers clos depuis plus de 30 jours
   useEffect(() => {
@@ -148,10 +158,29 @@ const Dossiers = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Ajouter l'utilisateur actuel dans la liste d'accès
+    // Validation : au moins un justiciable requis
+    if (!formData.justiciableId) {
+      toast({
+        title: "Erreur de validation",
+        description: "Veuillez sélectionner un justiciable pour ce dossier.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Construire la liste d'accès automatiquement avec les parties
+    const autoAccessList = [
+      currentUser?.id,
+      formData.justiciableId,
+      formData.jugeId,
+      formData.procureurId,
+      ...formData.avocatIds,
+      ...formData.accessList
+    ].filter((id): id is string => !!id);
+    
     const finalFormData: Omit<Dossier, "id" | "dateCreation"> = {
       ...formData,
-      accessList: currentUser ? [currentUser.id, ...formData.accessList] : formData.accessList,
+      accessList: [...new Set(autoAccessList)], // Dédupliquer
       historique: []
     };
     
@@ -168,8 +197,19 @@ const Dossiers = () => {
       statut: "en_cours",
       audienceId: "",
       pieces: [],
-      accessList: []
+      accessList: [],
+      justiciableId: "",
+      avocatIds: [],
+      jugeId: "",
+      procureurId: ""
     });
+  };
+
+  const handleAvocatToggle = (avocatId: string) => {
+    const newAvocatIds = formData.avocatIds.includes(avocatId)
+      ? formData.avocatIds.filter(id => id !== avocatId)
+      : [...formData.avocatIds, avocatId];
+    setFormData({ ...formData, avocatIds: newAvocatIds });
   };
 
   const handleFileUpload = (files: FileList | null, dossierId?: string) => {
@@ -441,6 +481,100 @@ const Dossiers = () => {
                         rows={4}
                       />
                     </div>
+
+                    {/* Section Parties du dossier */}
+                    <Separator />
+                    <div className="space-y-4">
+                      <h4 className="font-semibold flex items-center gap-2">
+                        <Users className="w-4 h-4" />
+                        Parties du dossier
+                      </h4>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Justiciable *</Label>
+                          <Select
+                            value={formData.justiciableId || "__none__"}
+                            onValueChange={(value) => setFormData({ ...formData, justiciableId: value === "__none__" ? "" : value })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Sélectionner un justiciable" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="__none__">Aucun</SelectItem>
+                              {justiciables.map((j) => (
+                                <SelectItem key={j.id} value={j.id}>
+                                  {j.prenom} {j.nom}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label>Juge assigné</Label>
+                          <Select
+                            value={formData.jugeId || "__none__"}
+                            onValueChange={(value) => setFormData({ ...formData, jugeId: value === "__none__" ? "" : value })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Sélectionner un juge" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="__none__">Aucun</SelectItem>
+                              {juges.map((juge) => (
+                                <SelectItem key={juge.id} value={juge.id}>
+                                  {juge.prenom} {juge.nom} - {juge.tribunal}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Avocat(s)</Label>
+                        <div className="border rounded-md p-3 space-y-2 max-h-32 overflow-y-auto">
+                          {avocats.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">Aucun avocat disponible</p>
+                          ) : (
+                            avocats.map((avocat) => (
+                              <div key={avocat.id} className="flex items-center gap-2">
+                                <Checkbox
+                                  id={`avocat-dossier-${avocat.id}`}
+                                  checked={formData.avocatIds.includes(avocat.id)}
+                                  onCheckedChange={() => handleAvocatToggle(avocat.id)}
+                                />
+                                <label htmlFor={`avocat-dossier-${avocat.id}`} className="text-sm cursor-pointer">
+                                  {avocat.prenom} {avocat.nom} - {avocat.tribunal}
+                                </label>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Procureur</Label>
+                        <Select
+                          value={formData.procureurId || "__none__"}
+                          onValueChange={(value) => setFormData({ ...formData, procureurId: value === "__none__" ? "" : value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Sélectionner un procureur (optionnel)" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="__none__">Aucun</SelectItem>
+                            {procureurs.map((procureur) => (
+                              <SelectItem key={procureur.id} value={procureur.id}>
+                                {procureur.prenom} {procureur.nom} - {procureur.tribunal}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <Separator />
 
                     <div className="space-y-2">
                       <Label>Audience liée</Label>

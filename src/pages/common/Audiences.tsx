@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Search, Edit, Trash2, Eye, Calendar, Clock, MapPin, Users, QrCode, History, Filter, X, Lock } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Eye, Calendar, Clock, MapPin, Users, QrCode, History, Filter, X, Lock, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -68,6 +68,53 @@ const Audiences = () => {
     dossierId: ""
   });
 
+  // Dossiers disponibles (avec au moins un justiciable)
+  const dossiersDisponibles = dossiers.filter(d => d.justiciableId);
+
+  // Auto-remplir les parties quand un dossier est sélectionné
+  const handleDossierChange = (dossierId: string) => {
+    if (dossierId === "__none__" || !dossierId) {
+      setFormData({ 
+        ...formData, 
+        dossierId: "",
+        parties: "",
+        jugeId: "",
+        procureurId: "",
+        avocatIds: [],
+        justiciableId: ""
+      });
+      return;
+    }
+
+    const dossier = dossiers.find(d => d.id === dossierId);
+    if (dossier) {
+      const justiciable = users.find(u => u.id === dossier.justiciableId);
+      const avocatNames = dossier.avocatIds?.map(id => {
+        const avocat = users.find(u => u.id === id);
+        return avocat ? `${avocat.prenom} ${avocat.nom}` : '';
+      }).filter(Boolean).join(', ');
+      
+      const partiesText = justiciable 
+        ? `${justiciable.prenom} ${justiciable.nom}${avocatNames ? ` (Avocat: ${avocatNames})` : ''}`
+        : dossier.titre;
+
+      setFormData({
+        ...formData,
+        dossierId,
+        parties: partiesText,
+        jugeId: dossier.jugeId || "",
+        procureurId: dossier.procureurId || "",
+        avocatIds: dossier.avocatIds || [],
+        justiciableId: dossier.justiciableId || ""
+      });
+      
+      toast({
+        title: "Dossier sélectionné",
+        description: "Les parties ont été automatiquement importées du dossier."
+      });
+    }
+  };
+
   const statutLabels = {
     prevue: { label: "Prévue", color: "bg-green-500" },
     en_cours: { label: "En cours", color: "bg-yellow-500" },
@@ -104,8 +151,18 @@ const Audiences = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validation
-    if (!formData.numero || !formData.parties || !formData.date || !formData.heure || !formData.salle || !formData.jugeId) {
+    // Validation : dossier obligatoire pour nouvelle audience
+    if (!editingAudience && !formData.dossierId) {
+      toast({
+        title: "Dossier requis",
+        description: "Veuillez d'abord sélectionner un dossier pour créer une audience.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Validation basique
+    if (!formData.numero || !formData.date || !formData.heure || !formData.salle || !formData.jugeId) {
       toast({
         title: "Erreur de validation",
         description: "Veuillez remplir tous les champs obligatoires",
@@ -263,6 +320,56 @@ const Audiences = () => {
                     </DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleSubmit} className="space-y-4">
+                    {/* Sélection du dossier - OBLIGATOIRE pour nouvelle audience */}
+                    {!editingAudience && (
+                      <div className="space-y-2 p-4 bg-primary/5 rounded-lg border-2 border-primary/20">
+                        <Label className="text-base font-semibold flex items-center gap-2">
+                          <FileText className="w-4 h-4" />
+                          Dossier associé *
+                        </Label>
+                        <p className="text-sm text-muted-foreground mb-2">
+                          Sélectionnez un dossier pour importer automatiquement les parties concernées.
+                        </p>
+                        <Select
+                          value={formData.dossierId || "__none__"}
+                          onValueChange={handleDossierChange}
+                        >
+                          <SelectTrigger className={!formData.dossierId ? "border-destructive" : ""}>
+                            <SelectValue placeholder="Sélectionner un dossier" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="__none__">-- Sélectionner un dossier --</SelectItem>
+                            {dossiersDisponibles.map((dossier) => {
+                              const justiciable = users.find(u => u.id === dossier.justiciableId);
+                              return (
+                                <SelectItem key={dossier.id} value={dossier.id}>
+                                  {dossier.numero} - {dossier.titre} 
+                                  {justiciable && ` (${justiciable.prenom} ${justiciable.nom})`}
+                                </SelectItem>
+                              );
+                            })}
+                          </SelectContent>
+                        </Select>
+                        {dossiersDisponibles.length === 0 && (
+                          <Alert className="mt-2">
+                            <AlertDescription>
+                              Aucun dossier disponible. Veuillez d'abord créer un dossier avec un justiciable.
+                            </AlertDescription>
+                          </Alert>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Infos importées du dossier */}
+                    {formData.dossierId && (
+                      <Alert className="bg-green-50 border-green-200">
+                        <Users className="w-4 h-4 text-green-600" />
+                        <AlertDescription className="text-green-800">
+                          Parties importées du dossier : les informations ci-dessous sont automatiquement remplies.
+                        </AlertDescription>
+                      </Alert>
+                    )}
+
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>N° Audience *</Label>
@@ -294,12 +401,14 @@ const Audiences = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Parties concernées *</Label>
+                      <Label>Parties concernées {formData.dossierId && <Badge variant="secondary" className="ml-2 text-xs">Auto</Badge>}</Label>
                       <Input
                         required
                         value={formData.parties}
                         onChange={(e) => setFormData({ ...formData, parties: e.target.value })}
-                        placeholder="Diallo vs Sarr"
+                        placeholder={formData.dossierId ? "Importé du dossier" : "Diallo vs Sarr"}
+                        readOnly={!!formData.dossierId}
+                        className={formData.dossierId ? "bg-muted" : ""}
                       />
                     </div>
 
@@ -367,13 +476,14 @@ const Audiences = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Juge *</Label>
+                      <Label>Juge * {formData.dossierId && <Badge variant="secondary" className="ml-2 text-xs">Hérité</Badge>}</Label>
                       <Select
                         required
                         value={formData.jugeId}
                         onValueChange={(value) => setFormData({ ...formData, jugeId: value })}
+                        disabled={!!formData.dossierId && !!formData.jugeId}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className={formData.dossierId && formData.jugeId ? "bg-muted" : ""}>
                           <SelectValue placeholder="Sélectionner un juge" />
                         </SelectTrigger>
                         <SelectContent>
@@ -387,12 +497,13 @@ const Audiences = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Procureur</Label>
+                      <Label>Procureur {formData.dossierId && formData.procureurId && <Badge variant="secondary" className="ml-2 text-xs">Hérité</Badge>}</Label>
                       <Select
                         value={formData.procureurId || "__none__"}
                         onValueChange={(value) => setFormData({ ...formData, procureurId: value === "__none__" ? "" : value })}
+                        disabled={!!formData.dossierId && !!formData.procureurId}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className={formData.dossierId && formData.procureurId ? "bg-muted" : ""}>
                           <SelectValue placeholder="Sélectionner un procureur (optionnel)" />
                         </SelectTrigger>
                         <SelectContent>
@@ -407,8 +518,8 @@ const Audiences = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Avocat(s)</Label>
-                      <div className="border rounded-md p-3 space-y-2 max-h-32 overflow-y-auto">
+                      <Label>Avocat(s) {formData.dossierId && formData.avocatIds.length > 0 && <Badge variant="secondary" className="ml-2 text-xs">Hérités</Badge>}</Label>
+                      <div className={`border rounded-md p-3 space-y-2 max-h-32 overflow-y-auto ${formData.dossierId && formData.avocatIds.length > 0 ? "bg-muted" : ""}`}>
                         {avocats.map((avocat) => (
                           <div key={avocat.id} className="flex items-center gap-2">
                             <input
@@ -417,6 +528,7 @@ const Audiences = () => {
                               checked={formData.avocatIds.includes(avocat.id)}
                               onChange={() => handleAvocatToggle(avocat.id)}
                               className="w-4 h-4"
+                              disabled={!!formData.dossierId && formData.avocatIds.length > 0}
                             />
                             <label htmlFor={`avocat-${avocat.id}`} className="text-sm cursor-pointer">
                               {avocat.prenom} {avocat.nom} - {avocat.tribunal}
@@ -427,15 +539,17 @@ const Audiences = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Justiciable</Label>
+                      <Label>Justiciable {formData.dossierId && <Badge variant="secondary" className="ml-2 text-xs">Hérité</Badge>}</Label>
                       <Select
-                        value={formData.justiciableId}
-                        onValueChange={(value) => setFormData({ ...formData, justiciableId: value })}
+                        value={formData.justiciableId || "__none__"}
+                        onValueChange={(value) => setFormData({ ...formData, justiciableId: value === "__none__" ? "" : value })}
+                        disabled={!!formData.dossierId}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className={formData.dossierId ? "bg-muted" : ""}>
                           <SelectValue placeholder="Sélectionner un justiciable" />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="__none__">Aucun</SelectItem>
                           {justiciables.map((justiciable) => (
                             <SelectItem key={justiciable.id} value={justiciable.id}>
                               {justiciable.prenom} {justiciable.nom}
@@ -445,28 +559,8 @@ const Audiences = () => {
                       </Select>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label>Dossier associé</Label>
-                      <Select
-                        value={formData.dossierId || "__none__"}
-                        onValueChange={(value) => setFormData({ ...formData, dossierId: value === "__none__" ? "" : value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner un dossier (optionnel)" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="__none__">Aucun</SelectItem>
-                          {dossiers.map((dossier) => (
-                            <SelectItem key={dossier.id} value={dossier.id}>
-                              {dossier.numero} - {dossier.titre}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
                     <DialogFooter>
-                      <Button type="submit" className="w-full">
+                      <Button type="submit" className="w-full" disabled={!editingAudience && !formData.dossierId}>
                         {editingAudience ? "Mettre à jour" : "Créer l'audience"}
                       </Button>
                     </DialogFooter>
