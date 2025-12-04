@@ -51,17 +51,17 @@ const Auth = () => {
   const getRoleDashboardPath = (role: UserRole): string => {
     switch (role) {
       case "admin":
-        return "/dashboard/users";
+        return "/admin/dashboard";
       case "greffier":
-        return "/dashboard";
+        return "/greffier/dashboard";
       case "juge":
-        return "/dashboard/stats";
+        return "/juge/dashboard";
       case "procureur":
-        return "/dashboard/stats";
+        return "/procureur/dashboard";
       case "avocat":
-        return "/dashboard/notifications";
+        return "/avocat/dashboard";
       case "justiciable":
-        return "/dashboard";
+        return "/justiciable/dashboard";
       default:
         return "/dashboard";
     }
