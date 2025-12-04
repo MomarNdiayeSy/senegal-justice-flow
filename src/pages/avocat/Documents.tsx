@@ -18,7 +18,7 @@ const AvocatDocuments = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
-  const [selectedDossier, setSelectedDossier] = useState<string>("");
+  const [selectedDossier, setSelectedDossier] = useState<string>("all");
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [uploadForm, setUploadForm] = useState({
     dossierId: "",
@@ -58,7 +58,7 @@ const AvocatDocuments = () => {
     const matchesSearch = doc.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
       doc.dossierNumero.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = typeFilter === "all" || doc.type === typeFilter;
-    const matchesDossier = !selectedDossier || doc.dossierId === selectedDossier;
+    const matchesDossier = selectedDossier === "all" || doc.dossierId === selectedDossier;
     return matchesSearch && matchesType && matchesDossier;
   });
 
@@ -284,7 +284,7 @@ const AvocatDocuments = () => {
                     <SelectValue placeholder="Tous les dossiers" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Tous les dossiers</SelectItem>
+                    <SelectItem value="all">Tous les dossiers</SelectItem>
                     {mesDossiers.map(dossier => (
                       <SelectItem key={dossier.id} value={dossier.id}>
                         {dossier.numero}
