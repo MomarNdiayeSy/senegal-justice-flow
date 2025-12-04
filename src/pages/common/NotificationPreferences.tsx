@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Bell, Mail, MessageSquare, Phone, Save, CheckCircle } from "lucide-react";
+import { Bell, Mail, MessageSquare, Phone, Save, CheckCircle, Gavel, FileText, AlertTriangle, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -24,18 +24,31 @@ const NotificationPreferences = () => {
       whatsapp: userPrefs?.canaux.whatsapp ?? false
     },
     types: {
+      // Audiences
       audience_creee: userPrefs?.types.audience_creee ?? true,
       audience_reportee: userPrefs?.types.audience_reportee ?? true,
       audience_annulee: userPrefs?.types.audience_annulee ?? true,
+      rappel_audience: userPrefs?.types.rappel_audience ?? true,
+      // Dossiers
       dossier_cree: userPrefs?.types.dossier_cree ?? true,
       dossier_modifie: userPrefs?.types.dossier_modifie ?? true,
       dossier_clos: userPrefs?.types.dossier_clos ?? true,
       piece_ajoutee: userPrefs?.types.piece_ajoutee ?? true,
+      assignation_nouveau_dossier: userPrefs?.types.assignation_nouveau_dossier ?? true,
+      // Décisions
       decision_rendue: userPrefs?.types.decision_rendue ?? true,
+      decision_validee: userPrefs?.types.decision_validee ?? true,
+      decision_publiee: userPrefs?.types.decision_publiee ?? true,
+      // Instructions
+      instruction_envoyee: userPrefs?.types.instruction_envoyee ?? true,
+      instruction_traitee: userPrefs?.types.instruction_traitee ?? true,
+      // Procédures
       convocation_recue: userPrefs?.types.convocation_recue ?? true,
       echeance_proche: userPrefs?.types.echeance_proche ?? true,
       commentaire_ajoute: userPrefs?.types.commentaire_ajoute ?? false,
-      assignation_nouveau_dossier: userPrefs?.types.assignation_nouveau_dossier ?? true
+      // Administration
+      utilisateur_cree: userPrefs?.types.utilisateur_cree ?? false,
+      alerte_securite: userPrefs?.types.alerte_securite ?? true
     }
   });
 
@@ -112,6 +125,7 @@ const NotificationPreferences = () => {
   const typeCategories = [
     {
       category: "Audiences",
+      icon: "📅",
       types: [
         {
           id: "audience_creee",
@@ -127,11 +141,17 @@ const NotificationPreferences = () => {
           id: "audience_annulee",
           label: "Audiences annulées",
           description: "Être notifié lorsqu'une audience est annulée"
+        },
+        {
+          id: "rappel_audience",
+          label: "Rappels d'audience",
+          description: "Recevoir un rappel avant une audience programmée"
         }
       ]
     },
     {
       category: "Dossiers",
+      icon: "📁",
       types: [
         {
           id: "dossier_cree",
@@ -161,13 +181,46 @@ const NotificationPreferences = () => {
       ]
     },
     {
-      category: "Procédures",
+      category: "Décisions",
+      icon: "⚖️",
       types: [
         {
           id: "decision_rendue",
           label: "Décisions rendues",
           description: "Être notifié lorsqu'une décision judiciaire est rendue"
         },
+        {
+          id: "decision_validee",
+          label: "Décisions validées",
+          description: "Être notifié lorsqu'une décision est validée par le greffe"
+        },
+        {
+          id: "decision_publiee",
+          label: "Décisions publiées",
+          description: "Être notifié lorsqu'une décision est publiée officiellement"
+        }
+      ]
+    },
+    {
+      category: "Instructions",
+      icon: "📋",
+      types: [
+        {
+          id: "instruction_envoyee",
+          label: "Instructions envoyées",
+          description: "Être notifié lorsqu'une instruction est envoyée par un juge"
+        },
+        {
+          id: "instruction_traitee",
+          label: "Instructions traitées",
+          description: "Être notifié lorsqu'une instruction a été traitée"
+        }
+      ]
+    },
+    {
+      category: "Procédures",
+      icon: "📜",
+      types: [
         {
           id: "convocation_recue",
           label: "Convocations",
@@ -182,6 +235,22 @@ const NotificationPreferences = () => {
           id: "commentaire_ajoute",
           label: "Commentaires ajoutés",
           description: "Être notifié lorsqu'un commentaire est ajouté sur un dossier"
+        }
+      ]
+    },
+    {
+      category: "Administration",
+      icon: "🔒",
+      types: [
+        {
+          id: "utilisateur_cree",
+          label: "Utilisateurs créés",
+          description: "Être notifié lors de la création d'un nouvel utilisateur (Admin)"
+        },
+        {
+          id: "alerte_securite",
+          label: "Alertes de sécurité",
+          description: "Être notifié en cas d'activité suspecte sur le système"
         }
       ]
     }
