@@ -65,6 +65,10 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       { icon: History, label: "Historique Décisions", path: "/juge/historique-decisions", roles: ["juge"] },
       { icon: MessageSquare, label: "Instructions Greffe", path: "/juge/instructions", roles: ["juge"] },
       { icon: BarChart3, label: "Mes Statistiques", path: "/juge/stats", roles: ["juge"] },
+      // Menu spécifique Procureur
+      { icon: FileText, label: "Affaires Parquet", path: "/procureur/affaires", roles: ["procureur"] },
+      { icon: Scale, label: "Décisions Justice", path: "/procureur/decisions", roles: ["procureur"] },
+      { icon: BarChart3, label: "Rapports", path: "/procureur/stats", roles: ["procureur"] },
       // Notifications
       { icon: Bell, label: "Notifications", path: "/dashboard/notifications", roles: ["admin", "greffier", "juge", "procureur", "avocat", "justiciable"] },
       // Admin only

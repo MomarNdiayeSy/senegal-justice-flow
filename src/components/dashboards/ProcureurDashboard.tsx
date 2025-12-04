@@ -1,13 +1,14 @@
 import { motion } from "framer-motion";
-import { Scale, FileText, Calendar, Clock, AlertCircle, CheckCircle, ScrollText, Bell } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Scale, FileText, Calendar, Clock, AlertCircle, CheckCircle, ScrollText, Bell, BarChart3, Eye } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/contexts/AppContext";
 
 const ProcureurDashboard = () => {
-  const { audiences, dossiers, users } = useApp();
-
+  const { audiences, dossiers, users, currentUser } = useApp();
+  const navigate = useNavigate();
   // Filtrer les audiences du ministère public
   const audiencesParquet = audiences;
   const audiencesEnAttente = audiencesParquet.filter(a => a.statut === "prevue");
@@ -162,16 +163,33 @@ const ProcureurDashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Button variant="outline" className="h-auto py-6 flex-col gap-2">
-                <ScrollText className="w-8 h-8 text-primary" />
-                <span className="font-semibold">Rédiger un réquisitoire</span>
-                <span className="text-xs text-muted-foreground">Nouvelle demande du parquet</span>
-              </Button>
-              <Button variant="outline" className="h-auto py-6 flex-col gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Button 
+                variant="outline" 
+                className="h-auto py-6 flex-col gap-2"
+                onClick={() => navigate("/procureur/affaires")}
+              >
                 <FileText className="w-8 h-8 text-primary" />
-                <span className="font-semibold">Consulter les réquisitoires</span>
-                <span className="text-xs text-muted-foreground">Accès rapide aux documents</span>
+                <span className="font-semibold">Affaires du Parquet</span>
+                <span className="text-xs text-muted-foreground">Suivi en temps réel</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-auto py-6 flex-col gap-2"
+                onClick={() => navigate("/procureur/decisions")}
+              >
+                <Scale className="w-8 h-8 text-primary" />
+                <span className="font-semibold">Décisions de Justice</span>
+                <span className="text-xs text-muted-foreground">Consulter les décisions</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-auto py-6 flex-col gap-2"
+                onClick={() => navigate("/procureur/stats")}
+              >
+                <BarChart3 className="w-8 h-8 text-primary" />
+                <span className="font-semibold">Rapports & Stats</span>
+                <span className="text-xs text-muted-foreground">Génération de rapports</span>
               </Button>
             </div>
           </CardContent>
