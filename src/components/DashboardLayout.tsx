@@ -73,6 +73,10 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       { icon: FileText, label: "Mes Affaires", path: "/avocat/affaires", roles: ["avocat"] },
       { icon: PenTool, label: "Documents", path: "/avocat/documents", roles: ["avocat"] },
       { icon: Scale, label: "Décisions Clients", path: "/avocat/decisions-clients", roles: ["avocat"] },
+      // Menu spécifique Justiciable
+      { icon: FileText, label: "Mon Dossier", path: "/justiciable/mon-dossier", roles: ["justiciable"] },
+      { icon: Scale, label: "Décisions", path: "/justiciable/decisions", roles: ["justiciable"] },
+      { icon: Monitor, label: "Tableau Affichage", path: "/justiciable/tableau-affichage", roles: ["justiciable"] },
       // Notifications
       { icon: Bell, label: "Notifications", path: "/dashboard/notifications", roles: ["admin", "greffier", "juge", "procureur", "avocat", "justiciable"] },
       // Admin only

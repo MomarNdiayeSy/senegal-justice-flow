@@ -48,6 +48,9 @@ import AvocatDecisionsClients from "./pages/avocat/DecisionsClients";
 
 // Justiciable pages
 import JusticiableDashboard from "./pages/justiciable/Dashboard";
+import JusticiableMonDossier from "./pages/justiciable/MonDossier";
+import JusticiableDecisions from "./pages/justiciable/Decisions";
+import JusticiableTableauAffichage from "./pages/justiciable/TableauAffichage";
 
 // Common pages
 import CommonAudiences from "./pages/common/Audiences";
@@ -209,6 +212,21 @@ const App = () => (
             <Route path="/justiciable/dashboard" element={
               <ProtectedRoute allowedRoles={["justiciable"]}>
                 <JusticiableDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/justiciable/mon-dossier" element={
+              <ProtectedRoute allowedRoles={["justiciable"]}>
+                <JusticiableMonDossier />
+              </ProtectedRoute>
+            } />
+            <Route path="/justiciable/decisions" element={
+              <ProtectedRoute allowedRoles={["justiciable"]}>
+                <JusticiableDecisions />
+              </ProtectedRoute>
+            } />
+            <Route path="/justiciable/tableau-affichage" element={
+              <ProtectedRoute allowedRoles={["justiciable"]}>
+                <JusticiableTableauAffichage />
               </ProtectedRoute>
             } />
 
