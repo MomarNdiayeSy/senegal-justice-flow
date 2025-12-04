@@ -1,15 +1,17 @@
 import { motion } from "framer-motion";
-import { Briefcase, Calendar, FileText, Bell, Upload, Search } from "lucide-react";
+import { Briefcase, Calendar, FileText, Bell, Upload, Search, Scale } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useApp } from "@/contexts/AppContext";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const AvocatDashboard = () => {
   const { audiences, dossiers, notifications, currentUser, users } = useApp();
   const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate();
 
   // Filtrer les audiences de l'avocat
   const mesAudiences = audiences.filter(a => a.avocatIds.includes(currentUser?.id || ""));
@@ -73,16 +75,26 @@ const AvocatDashboard = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
+        className="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
       >
         <div>
           <h1 className="text-3xl font-bold text-primary">Cabinet d'Avocat</h1>
           <p className="text-muted-foreground mt-1">Gestion de vos dossiers et audiences</p>
         </div>
-        <Button className="shadow-gold hover:scale-105 transition-smooth">
-          <Upload className="w-4 h-4 mr-2" />
-          Ajouter un document
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => navigate("/avocat/affaires")}>
+            <Briefcase className="w-4 h-4 mr-2" />
+            Mes Affaires
+          </Button>
+          <Button variant="outline" onClick={() => navigate("/avocat/decisions-clients")}>
+            <Scale className="w-4 h-4 mr-2" />
+            Décisions
+          </Button>
+          <Button className="shadow-gold hover:scale-105 transition-smooth" onClick={() => navigate("/avocat/documents")}>
+            <Upload className="w-4 h-4 mr-2" />
+            Documents
+          </Button>
+        </div>
       </motion.div>
 
       {/* Statistiques */}

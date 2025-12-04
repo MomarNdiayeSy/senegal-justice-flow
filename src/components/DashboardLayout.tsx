@@ -69,6 +69,10 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       { icon: FileText, label: "Affaires Parquet", path: "/procureur/affaires", roles: ["procureur"] },
       { icon: Scale, label: "Décisions Justice", path: "/procureur/decisions", roles: ["procureur"] },
       { icon: BarChart3, label: "Rapports", path: "/procureur/stats", roles: ["procureur"] },
+      // Menu spécifique Avocat
+      { icon: FileText, label: "Mes Affaires", path: "/avocat/affaires", roles: ["avocat"] },
+      { icon: PenTool, label: "Documents", path: "/avocat/documents", roles: ["avocat"] },
+      { icon: Scale, label: "Décisions Clients", path: "/avocat/decisions-clients", roles: ["avocat"] },
       // Notifications
       { icon: Bell, label: "Notifications", path: "/dashboard/notifications", roles: ["admin", "greffier", "juge", "procureur", "avocat", "justiciable"] },
       // Admin only
