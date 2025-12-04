@@ -114,6 +114,23 @@ const Audiences = () => {
       return;
     }
 
+    // Vérifier les conflits de salle
+    const conflictingSalle = audiences.find(a => 
+      a.salle === formData.salle && 
+      a.date === formData.date && 
+      a.heure === formData.heure &&
+      a.id !== editingAudience?.id
+    );
+    
+    if (conflictingSalle) {
+      toast({
+        title: "Conflit de salle",
+        description: `La ${formData.salle} est déjà occupée le ${formData.date} à ${formData.heure} par l'audience ${conflictingSalle.numero}`,
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (editingAudience) {
       updateAudience(editingAudience.id, formData);
       toast({
@@ -286,7 +303,7 @@ const Audiences = () => {
                       />
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Date *</Label>
                         <Input
@@ -305,15 +322,48 @@ const Audiences = () => {
                           onChange={(e) => setFormData({ ...formData, heure: e.target.value })}
                         />
                       </div>
-                      <div className="space-y-2">
-                        <Label>Salle *</Label>
-                        <Input
-                          required
-                          value={formData.salle}
-                          onChange={(e) => setFormData({ ...formData, salle: e.target.value })}
-                          placeholder="Salle 1"
-                        />
-                      </div>
+                    </div>
+                    
+                    {/* Sélection de salle avec disponibilité */}
+                    <div className="space-y-2">
+                      <Label>Salle * <span className="text-xs text-muted-foreground">(sélectionnez date/heure pour voir la disponibilité)</span></Label>
+                      <Select
+                        value={formData.salle}
+                        onValueChange={(value) => setFormData({ ...formData, salle: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner une salle" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {["Salle 1", "Salle 2", "Salle 3", "Salle 4", "Salle 5", "Grande Salle"].map((salle) => {
+                            const isOccupied = formData.date && formData.heure && audiences.some(a => 
+                              a.salle === salle && 
+                              a.date === formData.date && 
+                              a.heure === formData.heure &&
+                              a.id !== editingAudience?.id
+                            );
+                            return (
+                              <SelectItem 
+                                key={salle} 
+                                value={salle}
+                                disabled={isOccupied}
+                                className={isOccupied ? "text-destructive" : ""}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <div className={`w-2 h-2 rounded-full ${isOccupied ? 'bg-destructive' : 'bg-green-500'}`} />
+                                  {salle} {isOccupied && "(Occupée)"}
+                                </div>
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                      {formData.date && formData.heure && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-full bg-green-500" /> Disponible
+                          <span className="w-2 h-2 rounded-full bg-destructive ml-2" /> Occupée
+                        </p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
