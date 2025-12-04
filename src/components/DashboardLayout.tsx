@@ -252,27 +252,21 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex w-full">
+    <div className="min-h-screen bg-background">
       {/* Overlay pour mobile */}
       {sidebarOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+        <div
           onClick={() => setSidebarOpen(false)}
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
         />
       )}
 
       {/* Sidebar */}
-      <motion.aside
-        initial={false}
-        animate={{ 
-          x: sidebarOpen ? 0 : -280,
-          width: 280 
-        }}
-        className="bg-gradient-to-b from-primary via-primary to-primary/95 text-primary-foreground shadow-2xl fixed lg:relative z-50 h-screen lg:z-10 lg:translate-x-0 flex flex-col"
-        style={{ width: sidebarOpen ? 280 : 0 }}
+      <aside
+        className={cn(
+          "bg-gradient-to-b from-primary via-primary to-primary/95 text-primary-foreground shadow-2xl fixed top-0 left-0 z-50 h-screen flex flex-col transition-all duration-300 ease-in-out overflow-hidden",
+          sidebarOpen ? "w-[280px] translate-x-0" : "w-[280px] -translate-x-full lg:translate-x-0 lg:w-[70px]"
+        )}
       >
         {/* Decorative background pattern */}
         <div className="absolute inset-0 opacity-5">
@@ -281,52 +275,57 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         </div>
 
         {/* Header */}
-        <div className="relative p-5 flex items-center justify-between border-b border-white/10">
-          {sidebarOpen && (
-            <motion.div
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3 }}
-              className="flex items-center gap-3"
-            >
-              <div className="p-2.5 bg-accent rounded-xl shadow-gold">
-                <Scale className="w-6 h-6 text-accent-foreground" />
-              </div>
-              <div>
-                <h2 className="font-bold text-xl tracking-tight">e-Justice</h2>
-                <p className="text-xs text-white/60 font-medium">Sénégal</p>
-              </div>
-            </motion.div>
-          )}
+        <div className="relative p-4 flex items-center justify-between border-b border-white/10">
+          <div className={cn("flex items-center gap-3 transition-opacity duration-200", !sidebarOpen && "lg:hidden")}>
+            <div className="p-2.5 bg-accent rounded-xl shadow-gold">
+              <Scale className="w-6 h-6 text-accent-foreground" />
+            </div>
+            <div>
+              <h2 className="font-bold text-xl tracking-tight">e-Justice</h2>
+              <p className="text-xs text-white/60 font-medium">Sénégal</p>
+            </div>
+          </div>
+          {/* Icon only when collapsed on desktop */}
+          <div className={cn("hidden items-center justify-center", !sidebarOpen && "lg:flex")}>
+            <div className="p-2 bg-accent rounded-xl shadow-gold">
+              <Scale className="w-5 h-5 text-accent-foreground" />
+            </div>
+          </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="hover:bg-white/10 rounded-lg transition-all duration-200"
+            className="hover:bg-white/10 rounded-lg transition-all duration-200 hidden lg:flex"
           >
             {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSidebarOpen(false)}
+            className="hover:bg-white/10 rounded-lg transition-all duration-200 lg:hidden"
+          >
+            <X className="w-5 h-5" />
           </Button>
         </div>
 
         {/* User Info */}
-        {sidebarOpen && currentUser && (
-          <motion.div 
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
-            className="relative p-4 mx-3 mt-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10"
+        {currentUser && (
+          <div 
+            className={cn(
+              "relative p-4 mx-3 mt-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 cursor-pointer hover:bg-white/10 transition-all duration-200",
+              !sidebarOpen && "lg:mx-2 lg:p-2"
+            )}
+            onClick={() => navigate("/dashboard/profile")}
           >
-            <div 
-              className="flex items-center gap-3 cursor-pointer hover:opacity-90 transition-all duration-200"
-              onClick={() => navigate("/dashboard/profile")}
-            >
-              <Avatar className="w-11 h-11 ring-2 ring-accent/40 shadow-lg">
+            <div className={cn("flex items-center gap-3", !sidebarOpen && "lg:justify-center")}>
+              <Avatar className={cn("w-11 h-11 ring-2 ring-accent/40 shadow-lg", !sidebarOpen && "lg:w-9 lg:h-9")}>
                 <AvatarImage src={currentUser.photo} alt={currentUser.nom} />
                 <AvatarFallback className="bg-accent text-accent-foreground font-bold text-sm">
                   {currentUser.prenom[0]}{currentUser.nom[0]}
                 </AvatarFallback>
               </Avatar>
-              <div className="flex-1 min-w-0">
+              <div className={cn("flex-1 min-w-0", !sidebarOpen && "lg:hidden")}>
                 <p className="font-semibold text-sm truncate">
                   {currentUser.prenom} {currentUser.nom}
                 </p>
@@ -335,66 +334,62 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 </Badge>
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* Navigation */}
         <nav className="relative flex-1 overflow-y-auto p-3 mt-2 space-y-3 scrollbar-thin scrollbar-thumb-white/20">
           {menuSections.map((section, sectionIndex) => (
-            <motion.div 
-              key={section.title}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3, delay: sectionIndex * 0.05 }}
-            >
+            <div key={section.title}>
               {sectionIndex > 0 && <Separator className="bg-white/10 mb-3" />}
-              {sidebarOpen && (
-                <p className="text-[10px] uppercase tracking-widest text-white/40 font-semibold px-3 mb-2">
-                  {section.title}
-                </p>
-              )}
+              <p className={cn(
+                "text-[10px] uppercase tracking-widest text-white/40 font-semibold px-3 mb-2",
+                !sidebarOpen && "lg:hidden"
+              )}>
+                {section.title}
+              </p>
               <div className="space-y-0.5">
                 {section.items.map((item) => (
-                  <motion.div
+                  <div
                     key={item.path}
-                    whileHover={{ x: 4 }}
-                    whileTap={{ scale: 0.98 }}
                     className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 cursor-pointer relative group",
+                      "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 cursor-pointer relative group hover:translate-x-1",
                       isActive(item.path)
                         ? "bg-accent text-accent-foreground shadow-gold font-medium"
-                        : "hover:bg-white/10 text-white/90 hover:text-white"
+                        : "hover:bg-white/10 text-white/90 hover:text-white",
+                      !sidebarOpen && "lg:justify-center lg:px-2"
                     )}
-                    onClick={() => navigate(item.path)}
+                    onClick={() => {
+                      navigate(item.path);
+                      // Fermer sidebar sur mobile après navigation
+                      if (window.innerWidth < 1024) {
+                        setSidebarOpen(false);
+                      }
+                    }}
+                    title={!sidebarOpen ? item.label : undefined}
                   >
                     {isActive(item.path) && (
-                      <motion.div
-                        layoutId="activeIndicator"
-                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-accent-foreground rounded-r-full"
-                      />
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-accent-foreground rounded-r-full" />
                     )}
                     <item.icon className={cn(
                       "w-5 h-5 flex-shrink-0 transition-transform duration-200",
                       !isActive(item.path) && "group-hover:scale-110"
                     )} />
-                    {sidebarOpen && (
-                      <motion.span
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="text-sm flex-1"
-                      >
-                        {item.label}
-                      </motion.span>
-                    )}
+                    <span className={cn("text-sm flex-1", !sidebarOpen && "lg:hidden")}>
+                      {item.label}
+                    </span>
                     {item.label === "Mes Notifications" && unreadNotifications > 0 && (
-                      <Badge className="bg-destructive hover:bg-destructive text-white px-2 py-0 text-xs animate-pulse">
+                      <Badge className={cn(
+                        "bg-destructive hover:bg-destructive text-white px-2 py-0 text-xs animate-pulse",
+                        !sidebarOpen && "lg:absolute lg:top-0 lg:right-0 lg:px-1"
+                      )}>
                         {unreadNotifications}
                       </Badge>
                     )}
-                  </motion.div>
+                  </div>
                 ))}
               </div>
-            </motion.div>
+            </div>
           ))}
         </nav>
 
@@ -403,26 +398,37 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           <Button
             variant="ghost"
             size="sm"
-            className="w-full justify-start hover:bg-white/10 h-11 rounded-xl transition-all duration-200"
+            className={cn(
+              "w-full justify-start hover:bg-white/10 h-11 rounded-xl transition-all duration-200",
+              !sidebarOpen && "lg:justify-center lg:px-2"
+            )}
             onClick={() => navigate("/dashboard/settings")}
+            title={!sidebarOpen ? "Paramètres" : undefined}
           >
-            <Settings className="w-5 h-5 mr-3" />
-            {sidebarOpen && <span className="text-sm">Paramètres</span>}
+            <Settings className={cn("w-5 h-5", sidebarOpen && "mr-3")} />
+            <span className={cn("text-sm", !sidebarOpen && "lg:hidden")}>Paramètres</span>
           </Button>
           <Button
             variant="ghost"
             size="sm"
-            className="w-full justify-start hover:bg-red-500/20 text-red-300 hover:text-red-200 h-11 rounded-xl transition-all duration-200"
+            className={cn(
+              "w-full justify-start hover:bg-red-500/20 text-red-300 hover:text-red-200 h-11 rounded-xl transition-all duration-200",
+              !sidebarOpen && "lg:justify-center lg:px-2"
+            )}
             onClick={handleLogout}
+            title={!sidebarOpen ? "Déconnexion" : undefined}
           >
-            <LogOut className="w-5 h-5 mr-3" />
-            {sidebarOpen && <span className="text-sm">Déconnexion</span>}
+            <LogOut className={cn("w-5 h-5", sidebarOpen && "mr-3")} />
+            <span className={cn("text-sm", !sidebarOpen && "lg:hidden")}>Déconnexion</span>
           </Button>
         </div>
-      </motion.aside>
+      </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 w-full">
+      <div className={cn(
+        "flex-1 flex flex-col min-h-screen transition-all duration-300",
+        sidebarOpen ? "lg:ml-[280px]" : "lg:ml-[70px]"
+      )}>
         {/* Top Bar */}
         <header className="bg-card border-b border-border p-3 md:p-4 shadow-sm sticky top-0 z-30">
           <div className="flex items-center justify-between gap-2">
@@ -430,7 +436,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
+              onClick={() => setSidebarOpen(true)}
               className="lg:hidden hover:bg-primary/10"
             >
               <Menu className="w-5 h-5" />
