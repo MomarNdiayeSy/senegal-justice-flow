@@ -58,6 +58,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       { icon: Users, label: "Utilisateurs", path: "/greffier/users", roles: ["greffier"] },
       { icon: Scale, label: "Validation Décisions", path: "/greffier/validation-decisions", roles: ["greffier"] },
       { icon: MessageSquare, label: "Instructions Juges", path: "/greffier/instructions", roles: ["greffier"] },
+      { icon: Bell, label: "Envoi Notifications", path: "/greffier/envoi-notifications", roles: ["greffier"] },
       { icon: Monitor, label: "Tableau Affichage", path: "/greffier/affichage", roles: ["greffier"] },
       { icon: BarChart3, label: "Rapports", path: "/greffier/stats", roles: ["greffier"] },
       // Menu spécifique Juge
