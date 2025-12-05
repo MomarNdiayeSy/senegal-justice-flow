@@ -39,14 +39,18 @@ const Auth = () => {
     }
   }, [currentUser, navigate]);
 
-  const roles = [
-    { value: "admin", label: "Administrateur" },
-    { value: "greffier", label: "Greffier" },
-    { value: "juge", label: "Juge" },
-    { value: "procureur", label: "Procureur" },
-    { value: "avocat", label: "Avocat" },
-    { value: "justiciable", label: "Justiciable" }
+  // Rôles disponibles pour l'inscription (sans Admin)
+  const signupRoles = [
+    { value: "greffier", label: "Greffier", needsTribunal: true },
+    { value: "juge", label: "Juge", needsTribunal: true },
+    { value: "procureur", label: "Procureur", needsTribunal: true },
+    { value: "avocat", label: "Avocat", needsTribunal: false },
+    { value: "justiciable", label: "Justiciable", needsTribunal: false }
   ];
+
+  // Vérifier si le rôle sélectionné nécessite un tribunal
+  const selectedRoleConfig = signupRoles.find(r => r.value === signupData.role);
+  const needsTribunal = selectedRoleConfig?.needsTribunal ?? false;
 
   const getRoleDashboardPath = (role: UserRole): string => {
     switch (role) {
@@ -276,18 +280,21 @@ const Auth = () => {
                     }
 
                     const newUser = {
-                      ...signupData,
-                      id: `user-${Date.now()}`,
-                      dateCreation: new Date().toISOString(),
+                      email: signupData.email,
+                      nom: signupData.nom,
+                      prenom: signupData.prenom,
+                      role: signupData.role,
+                      telephone: signupData.telephone,
+                      tribunal: needsTribunal ? signupData.tribunal : "N/A",
+                      actif: false, // Compte inactif jusqu'à activation par le greffier
                     };
                     addUser(newUser);
-                    setCurrentUser(newUser);
                     toast({
-                      title: "✓ Inscription réussie",
-                      description: `Bienvenue ${signupData.prenom} ${signupData.nom}`,
+                      title: "✓ Inscription enregistrée",
+                      description: "Votre demande a été enregistrée. Votre compte sera activé par le greffier après vérification.",
                     });
                     setIsLoading(false);
-                    navigate(getRoleDashboardPath(signupData.role));
+                    // Ne pas connecter automatiquement - le compte n'est pas encore activé
                   }, 800);
                 }} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
@@ -376,14 +383,14 @@ const Auth = () => {
                     <Label htmlFor="signup-role">Rôle</Label>
                     <Select
                       value={signupData.role}
-                      onValueChange={(value: UserRole) => setSignupData({ ...signupData, role: value })}
+                      onValueChange={(value: UserRole) => setSignupData({ ...signupData, role: value, tribunal: "" })}
                       required
                     >
                       <SelectTrigger className="h-12">
                         <SelectValue placeholder="Sélectionnez votre rôle" />
                       </SelectTrigger>
                       <SelectContent>
-                        {roles.map((role) => (
+                        {signupRoles.map((role) => (
                           <SelectItem key={role.value} value={role.value}>
                             {role.label}
                           </SelectItem>
@@ -392,18 +399,20 @@ const Auth = () => {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-tribunal">Tribunal</Label>
-                    <Input
-                      id="signup-tribunal"
-                      type="text"
-                      placeholder="Tribunal de Dakar"
-                      value={signupData.tribunal}
-                      onChange={(e) => setSignupData({ ...signupData, tribunal: e.target.value })}
-                      required
-                      className="h-12"
-                    />
-                  </div>
+                  {needsTribunal && (
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-tribunal">Tribunal</Label>
+                      <Input
+                        id="signup-tribunal"
+                        type="text"
+                        placeholder="Tribunal de Dakar"
+                        value={signupData.tribunal}
+                        onChange={(e) => setSignupData({ ...signupData, tribunal: e.target.value })}
+                        required
+                        className="h-12"
+                      />
+                    </div>
+                  )}
 
                   <Button
                     type="submit"
