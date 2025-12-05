@@ -7,7 +7,12 @@ import { config } from '../config/env';
 import { logger } from '../utils/logger';
 
 export const register = async (req: Request, res: Response) => {
-  const { email, password, nom, prenom, telephone, role } = req.body;
+  const { email, password, nom, prenom, telephone, role, tribunal } = req.body;
+
+  // Vérifier que le rôle n'est pas ADMIN (inscription admin interdite)
+  if (role === 'ADMIN') {
+    throw new ApiError(403, 'Inscription en tant qu\'administrateur non autorisée');
+  }
 
   // Check if user exists
   const existingUser = await prisma.user.findUnique({
@@ -21,17 +26,23 @@ export const register = async (req: Request, res: Response) => {
   // Hash password
   const passwordHash = await bcrypt.hash(password, config.bcryptRounds);
 
+  // Déterminer si le compte doit être activé automatiquement
+  // Seuls les comptes créés par un admin/greffier sont actifs immédiatement
+  const isActive = false; // Les inscriptions publiques nécessitent activation par greffier
+
   // Create user with profile and role in a transaction
   const user = await prisma.$transaction(async (tx) => {
     const newUser = await tx.user.create({
       data: {
         email,
         passwordHash,
+        isActive,
         profile: {
           create: {
             nom,
             prenom,
             telephone,
+            tribunalAttache: tribunal || null,
           },
         },
         roles: {
@@ -49,33 +60,22 @@ export const register = async (req: Request, res: Response) => {
     return newUser;
   });
 
-  logger.info(`New user registered: ${email}`);
-
-  // Generate tokens
-  const roles = user.roles.map((r) => r.role);
-  const accessToken = generateAccessToken({
-    userId: user.id,
-    email: user.email,
-    roles,
-  });
-  const refreshToken = generateRefreshToken({
-    userId: user.id,
-    email: user.email,
-    roles,
-  });
+  logger.info(`New user registered (pending activation): ${email}`);
 
   res.status(201).json({
     success: true,
-    message: 'Inscription réussie',
+    message: 'Inscription enregistrée. Votre compte sera activé par le greffier après vérification.',
     data: {
       user: {
         id: user.id,
         email: user.email,
         profile: user.profile,
-        roles,
+        roles: user.roles.map((r) => r.role),
+        isActive: user.isActive,
       },
-      accessToken,
-      refreshToken,
+      // Ne pas générer de tokens si le compte n'est pas actif
+      accessToken: null,
+      refreshToken: null,
     },
   });
 };
@@ -94,6 +94,11 @@ export const login = async (req: Request, res: Response) => {
 
   if (!user) {
     throw new ApiError(401, 'Email ou mot de passe incorrect');
+  }
+
+  // Vérifier si le compte est actif
+  if (!user.isActive) {
+    throw new ApiError(403, 'Votre compte n\'est pas encore activé. Veuillez attendre la validation par le greffier.');
   }
 
   // Verify password
@@ -133,6 +138,7 @@ export const login = async (req: Request, res: Response) => {
         email: user.email,
         profile: user.profile,
         roles,
+        isActive: user.isActive,
       },
       accessToken,
       refreshToken,

@@ -113,6 +113,7 @@ export const authAPI = {
     prenom: string;
     telephone?: string;
     role: string;
+    tribunal?: string;
   }) => {
     return apiRequest<any>('/auth/register', {
       method: 'POST',
@@ -180,6 +181,42 @@ export const userAPI = {
       method: 'PUT',
       body: JSON.stringify({ currentPassword, newPassword }),
     }),
+
+  // Gestion des utilisateurs (Admin/Greffier)
+  list: (params?: { role?: string; status?: string; search?: string }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.role && params.role !== '__all__') queryParams.append('role', params.role);
+    if (params?.status && params.status !== '__all__') queryParams.append('status', params.status);
+    if (params?.search) queryParams.append('search', params.search);
+    const query = queryParams.toString();
+    return apiRequest<any>(`/users${query ? `?${query}` : ''}`);
+  },
+
+  create: (data: {
+    email: string;
+    password?: string;
+    nom: string;
+    prenom: string;
+    telephone?: string;
+    role: string;
+    tribunal?: string;
+  }) => apiRequest<any>('/users', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+
+  delete: (id: string) => apiRequest<any>(`/users/${id}`, {
+    method: 'DELETE',
+  }),
+
+  // Activation/Désactivation de compte
+  activate: (id: string) => apiRequest<any>(`/users/${id}/activate`, {
+    method: 'POST',
+  }),
+
+  deactivate: (id: string) => apiRequest<any>(`/users/${id}/deactivate`, {
+    method: 'POST',
+  }),
 };
 
 // ==================== DOSSIER API ====================

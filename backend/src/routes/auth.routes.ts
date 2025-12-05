@@ -17,7 +17,8 @@ const registerValidation = [
   body('nom').trim().notEmpty().withMessage('Le nom est requis'),
   body('prenom').trim().notEmpty().withMessage('Le prénom est requis'),
   body('telephone').optional().isMobilePhone('any'),
-  body('role').isIn(['AVOCAT', 'JUSTICIABLE']).withMessage('Rôle invalide'),
+  body('role').isIn(['GREFFIER', 'JUGE', 'PROCUREUR', 'AVOCAT', 'JUSTICIABLE']).withMessage('Rôle invalide (Admin non autorisé)'),
+  body('tribunal').optional().trim(),
 ];
 
 const loginValidation = [
