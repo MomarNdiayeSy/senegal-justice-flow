@@ -360,16 +360,7 @@ const Audiences = () => {
                       </div>
                     )}
 
-                    {/* Infos importées du dossier */}
-                    {formData.dossierId && (
-                      <Alert className="bg-green-50 border-green-200">
-                        <Users className="w-4 h-4 text-green-600" />
-                        <AlertDescription className="text-green-800">
-                          Parties importées du dossier : les informations ci-dessous sont automatiquement remplies.
-                        </AlertDescription>
-                      </Alert>
-                    )}
-
+                    {/* Champs de base toujours visibles */}
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>N° Audience *</Label>
@@ -400,18 +391,6 @@ const Audiences = () => {
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label>Parties concernées {formData.dossierId && <Badge variant="secondary" className="ml-2 text-xs">Auto</Badge>}</Label>
-                      <Input
-                        required
-                        value={formData.parties}
-                        onChange={(e) => setFormData({ ...formData, parties: e.target.value })}
-                        placeholder={formData.dossierId ? "Importé du dossier" : "Diallo vs Sarr"}
-                        readOnly={!!formData.dossierId}
-                        className={formData.dossierId ? "bg-muted" : ""}
-                      />
-                    </div>
-
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Date *</Label>
@@ -432,8 +411,51 @@ const Audiences = () => {
                         />
                       </div>
                     </div>
+
+                    {/* Champs des parties - Affichés seulement après sélection du dossier */}
+                    {(formData.dossierId || editingAudience) && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="space-y-4 pt-4 border-t"
+                      >
+                        <Alert className="bg-green-50 border-green-200">
+                          <Users className="w-4 h-4 text-green-600" />
+                          <AlertDescription className="text-green-800">
+                            {editingAudience 
+                              ? "Informations des parties de l'audience" 
+                              : "Parties importées du dossier : les informations ci-dessous sont automatiquement remplies."
+                            }
+                          </AlertDescription>
+                        </Alert>
+
+                        <div className="space-y-2">
+                          <Label>Parties concernées {formData.dossierId && !editingAudience && <Badge variant="secondary" className="ml-2 text-xs">Auto</Badge>}</Label>
+                          <Input
+                            required
+                            value={formData.parties}
+                            onChange={(e) => setFormData({ ...formData, parties: e.target.value })}
+                            placeholder={formData.dossierId ? "Importé du dossier" : "Diallo vs Sarr"}
+                            readOnly={!!formData.dossierId && !editingAudience}
+                            className={formData.dossierId && !editingAudience ? "bg-muted" : ""}
+                          />
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {/* Message d'attente si pas de dossier sélectionné */}
+                    {!formData.dossierId && !editingAudience && (
+                      <Alert className="border-dashed border-2">
+                        <FileText className="w-4 h-4" />
+                        <AlertDescription>
+                          Sélectionnez un dossier ci-dessus pour afficher les champs des parties concernées.
+                        </AlertDescription>
+                      </Alert>
+                    )}
                     
-                    {/* Sélection de salle avec disponibilité */}
+                    {/* Sélection de salle avec disponibilité - Toujours visible */}
                     <div className="space-y-2">
                       <Label>Salle * <span className="text-xs text-muted-foreground">(sélectionnez date/heure pour voir la disponibilité)</span></Label>
                       <Select
@@ -475,89 +497,100 @@ const Audiences = () => {
                       )}
                     </div>
 
-                    <div className="space-y-2">
-                      <Label>Juge * {formData.dossierId && <Badge variant="secondary" className="ml-2 text-xs">Hérité</Badge>}</Label>
-                      <Select
-                        required
-                        value={formData.jugeId}
-                        onValueChange={(value) => setFormData({ ...formData, jugeId: value })}
-                        disabled={!!formData.dossierId && !!formData.jugeId}
+                    {/* Champs des intervenants - Affichés seulement après sélection du dossier */}
+                    {(formData.dossierId || editingAudience) && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3, delay: 0.1 }}
+                        className="space-y-4"
                       >
-                        <SelectTrigger className={formData.dossierId && formData.jugeId ? "bg-muted" : ""}>
-                          <SelectValue placeholder="Sélectionner un juge" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {juges.map((juge) => (
-                            <SelectItem key={juge.id} value={juge.id}>
-                              {juge.prenom} {juge.nom} - {juge.tribunal}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                        <div className="space-y-2">
+                          <Label>Juge * {formData.dossierId && !editingAudience && <Badge variant="secondary" className="ml-2 text-xs">Hérité</Badge>}</Label>
+                          <Select
+                            required
+                            value={formData.jugeId}
+                            onValueChange={(value) => setFormData({ ...formData, jugeId: value })}
+                            disabled={!!formData.dossierId && !!formData.jugeId && !editingAudience}
+                          >
+                            <SelectTrigger className={formData.dossierId && formData.jugeId && !editingAudience ? "bg-muted" : ""}>
+                              <SelectValue placeholder="Sélectionner un juge" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {juges.map((juge) => (
+                                <SelectItem key={juge.id} value={juge.id}>
+                                  {juge.prenom} {juge.nom} - {juge.tribunal}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
 
-                    <div className="space-y-2">
-                      <Label>Procureur {formData.dossierId && formData.procureurId && <Badge variant="secondary" className="ml-2 text-xs">Hérité</Badge>}</Label>
-                      <Select
-                        value={formData.procureurId || "__none__"}
-                        onValueChange={(value) => setFormData({ ...formData, procureurId: value === "__none__" ? "" : value })}
-                        disabled={!!formData.dossierId && !!formData.procureurId}
-                      >
-                        <SelectTrigger className={formData.dossierId && formData.procureurId ? "bg-muted" : ""}>
-                          <SelectValue placeholder="Sélectionner un procureur (optionnel)" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="__none__">Aucun</SelectItem>
-                          {procureurs.map((procureur) => (
-                            <SelectItem key={procureur.id} value={procureur.id}>
-                              {procureur.prenom} {procureur.nom} - {procureur.tribunal}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                        <div className="space-y-2">
+                          <Label>Procureur {formData.dossierId && formData.procureurId && !editingAudience && <Badge variant="secondary" className="ml-2 text-xs">Hérité</Badge>}</Label>
+                          <Select
+                            value={formData.procureurId || "__none__"}
+                            onValueChange={(value) => setFormData({ ...formData, procureurId: value === "__none__" ? "" : value })}
+                            disabled={!!formData.dossierId && !!formData.procureurId && !editingAudience}
+                          >
+                            <SelectTrigger className={formData.dossierId && formData.procureurId && !editingAudience ? "bg-muted" : ""}>
+                              <SelectValue placeholder="Sélectionner un procureur (optionnel)" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="__none__">Aucun</SelectItem>
+                              {procureurs.map((procureur) => (
+                                <SelectItem key={procureur.id} value={procureur.id}>
+                                  {procureur.prenom} {procureur.nom} - {procureur.tribunal}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
 
-                    <div className="space-y-2">
-                      <Label>Avocat(s) {formData.dossierId && formData.avocatIds.length > 0 && <Badge variant="secondary" className="ml-2 text-xs">Hérités</Badge>}</Label>
-                      <div className={`border rounded-md p-3 space-y-2 max-h-32 overflow-y-auto ${formData.dossierId && formData.avocatIds.length > 0 ? "bg-muted" : ""}`}>
-                        {avocats.map((avocat) => (
-                          <div key={avocat.id} className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              id={`avocat-${avocat.id}`}
-                              checked={formData.avocatIds.includes(avocat.id)}
-                              onChange={() => handleAvocatToggle(avocat.id)}
-                              className="w-4 h-4"
-                              disabled={!!formData.dossierId && formData.avocatIds.length > 0}
-                            />
-                            <label htmlFor={`avocat-${avocat.id}`} className="text-sm cursor-pointer">
-                              {avocat.prenom} {avocat.nom} - {avocat.tribunal}
-                            </label>
+                        <div className="space-y-2">
+                          <Label>Avocat(s) {formData.dossierId && formData.avocatIds.length > 0 && !editingAudience && <Badge variant="secondary" className="ml-2 text-xs">Hérités</Badge>}</Label>
+                          <div className={`border rounded-md p-3 space-y-2 max-h-32 overflow-y-auto ${formData.dossierId && formData.avocatIds.length > 0 && !editingAudience ? "bg-muted" : ""}`}>
+                            {avocats.map((avocat) => (
+                              <div key={avocat.id} className="flex items-center gap-2">
+                                <input
+                                  type="checkbox"
+                                  id={`avocat-${avocat.id}`}
+                                  checked={formData.avocatIds.includes(avocat.id)}
+                                  onChange={() => handleAvocatToggle(avocat.id)}
+                                  className="w-4 h-4"
+                                  disabled={!!formData.dossierId && formData.avocatIds.length > 0 && !editingAudience}
+                                />
+                                <label htmlFor={`avocat-${avocat.id}`} className="text-sm cursor-pointer">
+                                  {avocat.prenom} {avocat.nom} - {avocat.tribunal}
+                                </label>
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
-                    </div>
+                        </div>
 
-                    <div className="space-y-2">
-                      <Label>Justiciable {formData.dossierId && <Badge variant="secondary" className="ml-2 text-xs">Hérité</Badge>}</Label>
-                      <Select
-                        value={formData.justiciableId || "__none__"}
-                        onValueChange={(value) => setFormData({ ...formData, justiciableId: value === "__none__" ? "" : value })}
-                        disabled={!!formData.dossierId}
-                      >
-                        <SelectTrigger className={formData.dossierId ? "bg-muted" : ""}>
-                          <SelectValue placeholder="Sélectionner un justiciable" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="__none__">Aucun</SelectItem>
-                          {justiciables.map((justiciable) => (
-                            <SelectItem key={justiciable.id} value={justiciable.id}>
-                              {justiciable.prenom} {justiciable.nom}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                        <div className="space-y-2">
+                          <Label>Justiciable {formData.dossierId && !editingAudience && <Badge variant="secondary" className="ml-2 text-xs">Hérité</Badge>}</Label>
+                          <Select
+                            value={formData.justiciableId || "__none__"}
+                            onValueChange={(value) => setFormData({ ...formData, justiciableId: value === "__none__" ? "" : value })}
+                            disabled={!!formData.dossierId && !editingAudience}
+                          >
+                            <SelectTrigger className={formData.dossierId && !editingAudience ? "bg-muted" : ""}>
+                              <SelectValue placeholder="Sélectionner un justiciable" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="__none__">Aucun</SelectItem>
+                              {justiciables.map((justiciable) => (
+                                <SelectItem key={justiciable.id} value={justiciable.id}>
+                                  {justiciable.prenom} {justiciable.nom}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </motion.div>
+                    )}
 
                     <DialogFooter>
                       <Button type="submit" className="w-full" disabled={!editingAudience && !formData.dossierId}>
