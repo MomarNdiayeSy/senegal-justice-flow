@@ -20,6 +20,8 @@ import blogRoutes from './routes/blog.routes';
 import documentRoutes from './routes/document.routes';
 import aiRoutes from './routes/ai.routes';
 import adminRoutes from './routes/admin.routes';
+import decisionRoutes from './routes/decision.routes';
+import instructionRoutes from './routes/instruction.routes';
 
 const app = express();
 

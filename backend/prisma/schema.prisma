@@ -7,6 +7,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ==================== ENUMS ====================
+
 enum Role {
   ADMIN
   GREFFIER
@@ -49,18 +51,25 @@ enum StatutAudience {
 }
 
 enum TypeNotification {
-  NOUVELLE_AUDIENCE
-  MODIFICATION_AUDIENCE
-  ANNULATION_AUDIENCE
+  AUDIENCE_CREEE
+  AUDIENCE_REPORTEE
+  AUDIENCE_ANNULEE
+  RAPPEL_AUDIENCE
   DOSSIER_CREE
+  DOSSIER_MODIFIE
   DOSSIER_CLOS
   PIECE_AJOUTEE
+  ASSIGNATION_NOUVEAU_DOSSIER
   DECISION_RENDUE
+  DECISION_VALIDEE
+  DECISION_PUBLIEE
+  INSTRUCTION_ENVOYEE
+  INSTRUCTION_TRAITEE
   CONVOCATION_RECUE
   ECHEANCE_PROCHE
   COMMENTAIRE_AJOUTE
-  ASSIGNATION_NOUVEAU_DOSSIER
-  MESSAGE_SYSTEME
+  UTILISATEUR_CREE
+  ALERTE_SECURITE
 }
 
 enum CanalNotification {
@@ -70,12 +79,36 @@ enum CanalNotification {
   IN_APP
 }
 
+enum StatutNotification {
+  EN_ATTENTE
+  ENVOYE
+  ECHEC
+  LU
+}
+
+enum StatutDecision {
+  BROUILLON
+  EN_ATTENTE_VALIDATION
+  VALIDEE
+  PUBLIEE
+}
+
+enum StatutInstruction {
+  EN_ATTENTE
+  EN_COURS
+  TRAITEE
+  ANNULEE
+}
+
+// ==================== MODELS ====================
+
 model User {
   id                String   @id @default(uuid())
   email             String   @unique
   passwordHash      String   @map("password_hash")
   emailVerified     Boolean  @default(false) @map("email_verified")
   phoneVerified     Boolean  @default(false) @map("phone_verified")
+  isActive          Boolean  @default(true) @map("is_active")
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
   lastLoginAt       DateTime? @map("last_login_at")
@@ -86,8 +119,37 @@ model User {
   notificationPrefs NotificationPreference[]
   auditLogs         AuditLog[]
   blogPosts         BlogPost[]
+  refreshTokens     RefreshToken[]
 
   @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  revokedAt DateTime? @map("revoked_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@map("refresh_tokens")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([email])
+  @@index([token])
+  @@map("password_reset_tokens")
 }
 
 model UserRole {
@@ -123,10 +185,13 @@ model Profile {
   updatedAt       DateTime @updatedAt @map("updated_at")
 
   user                User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  dossiersAvocat      Dossier[]  @relation("AvocatDossiers")
   dossiersJuge        Dossier[]  @relation("JugeDossiers")
   dossiersProcureur   Dossier[]  @relation("ProcureurDossiers")
   dossiersJusticiable Dossier[]  @relation("JusticiableDossiers")
+  dossiersAvocats     DossierAvocat[]
+  decisions           Decision[] @relation("JugeDecisions")
+  instructionsEnvoyees Instruction[] @relation("JugeInstructions")
+  instructionsTraitees Instruction[] @relation("GreffierInstructions")
 
   @@map("profiles")
 }
@@ -142,55 +207,102 @@ model Dossier {
   dateCloture     DateTime?     @map("date_cloture")
   tribunal        String
   chambre         String?
-  avocatId        String?       @map("avocat_id")
   jugeId          String?       @map("juge_id")
   procureurId     String?       @map("procureur_id")
-  justiciableId   String?       @map("justiciable_id")
+  justiciableId   String        @map("justiciable_id")
   montantLitige   Decimal?      @map("montant_litige") @db.Decimal(15, 2)
   observations    String?
   metadata        Json?
   createdAt       DateTime      @default(now()) @map("created_at")
   updatedAt       DateTime      @updatedAt @map("updated_at")
+  createdBy       String?       @map("created_by")
 
-  avocat        Profile?        @relation("AvocatDossiers", fields: [avocatId], references: [id])
   juge          Profile?        @relation("JugeDossiers", fields: [jugeId], references: [id])
   procureur     Profile?        @relation("ProcureurDossiers", fields: [procureurId], references: [id])
-  justiciable   Profile?        @relation("JusticiableDossiers", fields: [justiciableId], references: [id])
+  justiciable   Profile         @relation("JusticiableDossiers", fields: [justiciableId], references: [id])
+  avocats       DossierAvocat[]
   audiences     Audience[]
   piecesJointes PieceJointe[]
   decisions     Decision[]
+  historique    HistoriqueDossier[]
 
-  @@index([avocatId])
   @@index([jugeId])
   @@index([procureurId])
   @@index([justiciableId])
   @@index([statut])
+  @@index([type])
+  @@index([createdAt])
   @@map("dossiers")
+}
+
+model DossierAvocat {
+  id        String   @id @default(uuid())
+  dossierId String   @map("dossier_id")
+  avocatId  String   @map("avocat_id")
+  principal Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  dossier Dossier @relation(fields: [dossierId], references: [id], onDelete: Cascade)
+  avocat  Profile @relation(fields: [avocatId], references: [id])
+
+  @@unique([dossierId, avocatId])
+  @@map("dossier_avocats")
+}
+
+model HistoriqueDossier {
+  id        String   @id @default(uuid())
+  dossierId String   @map("dossier_id")
+  action    String
+  details   Json?
+  userId    String?  @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  dossier Dossier @relation(fields: [dossierId], references: [id], onDelete: Cascade)
+
+  @@index([dossierId])
+  @@map("historique_dossiers")
 }
 
 model Audience {
   id               String         @id @default(uuid())
   dossierId        String         @map("dossier_id")
   dateAudience     DateTime       @map("date_audience")
-  heureDebut       DateTime       @map("heure_debut")
-  heureFin         DateTime?      @map("heure_fin")
+  heureDebut       String         @map("heure_debut")
+  heureFin         String?        @map("heure_fin")
   salle            String
   typeAudience     TypeAudience   @map("type_audience")
   statut           StatutAudience @default(PROGRAMMEE)
   objetAudience    String         @map("objet_audience")
   procesVerbal     String?        @map("proces_verbal")
   observations     String?
-  publicationWeb   Boolean        @default(false) @map("publication_web")
+  publicationWeb   Boolean        @default(true) @map("publication_web")
+  motifReport      String?        @map("motif_report")
   metadata         Json?
   createdAt        DateTime       @default(now()) @map("created_at")
   updatedAt        DateTime       @updatedAt @map("updated_at")
+  createdBy        String?        @map("created_by")
 
   dossier Dossier @relation(fields: [dossierId], references: [id], onDelete: Cascade)
 
   @@index([dossierId])
   @@index([dateAudience])
   @@index([statut])
+  @@index([salle, dateAudience])
   @@map("audiences")
+}
+
+model Salle {
+  id          String   @id @default(uuid())
+  nom         String   @unique
+  capacite    Int      @default(50)
+  equipements String[]
+  disponible  Boolean  @default(true)
+  etage       String?
+  batiment    String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("salles")
 }
 
 model PieceJointe {
@@ -215,43 +327,87 @@ model PieceJointe {
 }
 
 model Decision {
-  id                 String   @id @default(uuid())
-  dossierId          String   @map("dossier_id")
-  numeroDecision     String   @unique @map("numero_decision")
-  typeDecision       String   @map("type_decision")
-  dateDelibere       DateTime @map("date_delibere")
-  datePrononce       DateTime @map("date_prononce")
+  id                 String         @id @default(uuid())
+  dossierId          String         @map("dossier_id")
+  numeroDecision     String         @unique @map("numero_decision")
+  typeDecision       String         @map("type_decision")
+  dateDelibere       DateTime       @map("date_delibere")
+  datePrononce       DateTime?      @map("date_prononce")
   dispositif         String
-  motivationComplete String?  @map("motivation_complete")
-  sensPrononce       String   @map("sens_prononce")
-  publicationWeb     Boolean  @default(false) @map("publication_web")
-  urlDocument        String?  @map("url_document")
+  motivationComplete String?        @map("motivation_complete")
+  sensPrononce       String?        @map("sens_prononce")
+  statut             StatutDecision @default(BROUILLON)
+  jugeId             String         @map("juge_id")
+  validePar          String?        @map("valide_par")
+  dateValidation     DateTime?      @map("date_validation")
+  publicationWeb     Boolean        @default(false) @map("publication_web")
+  datePublication    DateTime?      @map("date_publication")
+  urlDocument        String?        @map("url_document")
   metadata           Json?
-  createdAt          DateTime @default(now()) @map("created_at")
-  updatedAt          DateTime @updatedAt @map("updated_at")
+  createdAt          DateTime       @default(now()) @map("created_at")
+  updatedAt          DateTime       @updatedAt @map("updated_at")
 
   dossier Dossier @relation(fields: [dossierId], references: [id], onDelete: Cascade)
+  juge    Profile @relation("JugeDecisions", fields: [jugeId], references: [id])
 
   @@index([dossierId])
+  @@index([jugeId])
+  @@index([statut])
   @@map("decisions")
 }
 
+model Instruction {
+  id           String            @id @default(uuid())
+  type         String
+  titre        String
+  description  String
+  priorite     String            @default("normale")
+  statut       StatutInstruction @default(EN_ATTENTE)
+  jugeId       String            @map("juge_id")
+  greffierId   String?           @map("greffier_id")
+  dossierId    String?           @map("dossier_id")
+  audienceId   String?           @map("audience_id")
+  dateEcheance DateTime?         @map("date_echeance")
+  dateTraitement DateTime?       @map("date_traitement")
+  commentaire  String?
+  metadata     Json?
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+
+  juge     Profile  @relation("JugeInstructions", fields: [jugeId], references: [id])
+  greffier Profile? @relation("GreffierInstructions", fields: [greffierId], references: [id])
+
+  @@index([jugeId])
+  @@index([greffierId])
+  @@index([statut])
+  @@map("instructions")
+}
+
 model Notification {
-  id               String            @id @default(uuid())
-  userId           String            @map("user_id")
+  id               String             @id @default(uuid())
+  userId           String             @map("user_id")
   type             TypeNotification
   titre            String
   message          String
-  lue              Boolean           @default(false)
-  dateLue          DateTime?         @map("date_lue")
-  actionUrl        String?           @map("action_url")
+  canal            CanalNotification  @default(IN_APP)
+  statut           StatutNotification @default(EN_ATTENTE)
+  lue              Boolean            @default(false)
+  dateLue          DateTime?          @map("date_lue")
+  dateEnvoi        DateTime?          @map("date_envoi")
+  actionUrl        String?            @map("action_url")
+  dossierId        String?            @map("dossier_id")
+  audienceId       String?            @map("audience_id")
+  tentatives       Int                @default(0)
+  erreur           String?
   metadata         Json?
-  createdAt        DateTime          @default(now()) @map("created_at")
+  createdAt        DateTime           @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([lue])
+  @@index([type])
+  @@index([statut])
   @@map("notifications")
 }
 
@@ -289,6 +445,7 @@ model AuditLog {
   @@index([userId])
   @@index([entity, entityId])
   @@index([timestamp])
+  @@index([action])
   @@map("audit_logs")
 }
 
@@ -312,6 +469,7 @@ model BlogPost {
 
   @@index([auteurId])
   @@index([publie])
+  @@index([slug])
   @@map("blog_posts")
 }
 
