@@ -22,6 +22,7 @@ import aiRoutes from './routes/ai.routes';
 import adminRoutes from './routes/admin.routes';
 import decisionRoutes from './routes/decision.routes';
 import instructionRoutes from './routes/instruction.routes';
+import salleRoutes from './routes/salle.routes';
 
 const app = express();
 
@@ -70,6 +71,9 @@ app.use('/api/blog', blogRoutes);
 app.use('/api/documents', documentRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/decisions', decisionRoutes);
+app.use('/api/instructions', instructionRoutes);
+app.use('/api/salles', salleRoutes);
 
 // Static files (uploads)
 app.use('/uploads', express.static(config.uploadDir));
