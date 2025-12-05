@@ -679,6 +679,28 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       ]
     };
     setDossiers([...dossiers, newDossier]);
+    
+    // Envoyer notifications aux parties concernées
+    const partiesToNotify = [
+      dossier.justiciableId,
+      dossier.jugeId,
+      dossier.procureurId,
+      ...(dossier.avocatIds || [])
+    ].filter((id): id is string => !!id && id !== currentUser?.id);
+    
+    partiesToNotify.forEach(userId => {
+      addNotification({
+        type: "dossier_cree",
+        titre: "Nouveau dossier assigné",
+        message: `Vous avez été assigné au dossier ${dossier.numero}: ${dossier.titre}`,
+        destinataireId: userId,
+        dossierId: newDossier.id,
+        statut: "envoye",
+        canal: "email",
+        tentatives: 1
+      });
+    });
+    
     addLog({
       userId: currentUser?.id || "system",
       action: "Création dossier",
@@ -688,6 +710,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const updateDossier = (id: string, data: Partial<Dossier>) => {
     const dossier = dossiers.find(d => d.id === id);
+    if (!dossier) return;
+    
+    const wasStatusChanged = data.statut && dossier.statut !== data.statut;
+    const wasPiecesAdded = data.pieces && data.pieces.length > dossier.pieces.length;
     
     setDossiers(dossiers.map(d => {
       if (d.id === id) {
@@ -708,6 +734,46 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       }
       return d;
     }));
+    
+    // Notifications aux parties concernées
+    const partiesToNotify = [
+      dossier.justiciableId,
+      dossier.jugeId,
+      dossier.procureurId,
+      ...(dossier.avocatIds || [])
+    ].filter((id): id is string => !!id && id !== currentUser?.id);
+    
+    // Notification si statut changé (clos ou archivé)
+    if (wasStatusChanged && (data.statut === "clos" || data.statut === "archive")) {
+      partiesToNotify.forEach(userId => {
+        addNotification({
+          type: "dossier_clos",
+          titre: "Dossier clôturé",
+          message: `Le dossier ${dossier.numero} a été ${data.statut === "clos" ? "clôturé" : "archivé"}.`,
+          destinataireId: userId,
+          dossierId: id,
+          statut: "envoye",
+          canal: "email",
+          tentatives: 1
+        });
+      });
+    }
+    
+    // Notification si nouvelles pièces ajoutées
+    if (wasPiecesAdded) {
+      partiesToNotify.forEach(userId => {
+        addNotification({
+          type: "piece_ajoutee",
+          titre: "Nouvelle pièce ajoutée",
+          message: `Une nouvelle pièce a été ajoutée au dossier ${dossier.numero}.`,
+          destinataireId: userId,
+          dossierId: id,
+          statut: "envoye",
+          canal: "email",
+          tentatives: 1
+        });
+      });
+    }
     
     addLog({
       userId: currentUser?.id || "system",
