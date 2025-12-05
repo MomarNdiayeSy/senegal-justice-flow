@@ -119,18 +119,21 @@ const Auth = () => {
         className="w-full max-w-md"
       >
         <Card className="shadow-elegant border-0 bg-white">
-          <CardHeader className="text-center pb-8 pt-10">
-            <div className="flex justify-center mb-6">
-              <div className="p-5 rounded-full bg-primary/10 shadow-md">
-                <Scale className="w-16 h-16 text-primary" />
-              </div>
+          <CardHeader className="text-center pb-6 pt-8">
+            <div className="flex justify-center mb-4">
+              <motion.div 
+                className="p-4 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 shadow-lg"
+                whileHover={{ scale: 1.05, rotate: 5 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <Scale className="w-12 h-12 text-primary" />
+              </motion.div>
             </div>
-            <CardTitle className="text-3xl font-bold text-primary mb-2">e-Justice Sénégal</CardTitle>
-            <CardDescription className="text-base text-muted-foreground">
-              Ministère de la Justice
-            </CardDescription>
-            <CardDescription className="text-sm mt-1">
-              Connectez-vous à votre espace professionnel
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+              e-Justice Sénégal
+            </CardTitle>
+            <CardDescription className="text-sm text-muted-foreground mt-1">
+              Plateforme de Gestion Judiciaire
             </CardDescription>
           </CardHeader>
 
@@ -207,24 +210,14 @@ const Auth = () => {
                     )}
                   </Button>
 
-                  <div className="text-center text-sm text-muted-foreground">
-                    <a href="#" className="hover:text-accent transition-smooth">
+                  <div className="flex items-center justify-between text-sm">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" className="rounded border-border" />
+                      <span className="text-muted-foreground">Se souvenir de moi</span>
+                    </label>
+                    <a href="#" className="text-primary hover:text-accent transition-smooth font-medium">
                       Mot de passe oublié ?
                     </a>
-                  </div>
-
-                  {/* Comptes de test */}
-                  <div className="mt-6 p-4 bg-muted/50 rounded-lg border border-border">
-                    <p className="text-xs font-semibold text-primary mb-2">Comptes de test disponibles :</p>
-                    <div className="text-xs space-y-1 text-muted-foreground">
-                      <p>• admin@justice.sn (Administrateur)</p>
-                      <p>• greffier@justice.sn (Greffier)</p>
-                      <p>• juge.ba@justice.sn (Juge)</p>
-                      <p>• procureur@justice.sn (Procureur)</p>
-                      <p>• avocat.sy@justice.sn (Avocat)</p>
-                      <p>• justiciable@justice.sn (Justiciable)</p>
-                      <p className="mt-2 text-primary font-medium">Mot de passe : 123456 (min. 6 caractères)</p>
-                    </div>
                   </div>
                 </form>
               </TabsContent>
