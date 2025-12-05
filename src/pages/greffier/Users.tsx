@@ -395,21 +395,34 @@ const GreffierUsers = () => {
                           </TableCell>
                           <TableCell className="hidden lg:table-cell">{user.tribunal}</TableCell>
                           <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
+                            <div className="flex justify-end gap-2 flex-wrap">
                               {!user.actif ? (
-                                <Button size="sm" variant="default" onClick={() => handleActivate(user)} className="bg-green-600 hover:bg-green-700">
+                                <Button 
+                                  size="sm" 
+                                  onClick={() => handleActivate(user)} 
+                                  className="bg-green-600 hover:bg-green-700 text-white gap-1"
+                                >
                                   <CheckCircle className="w-4 h-4" />
+                                  <span className="hidden sm:inline">Activer</span>
                                 </Button>
                               ) : (
-                                <Button size="sm" variant="outline" onClick={() => handleDeactivate(user)}>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  onClick={() => handleDeactivate(user)}
+                                  className="text-orange-600 border-orange-300 hover:bg-orange-50 gap-1"
+                                >
                                   <XCircle className="w-4 h-4" />
+                                  <span className="hidden sm:inline">Désactiver</span>
                                 </Button>
                               )}
-                              <Button size="sm" variant="outline" onClick={() => handleEdit(user)}>
+                              <Button size="sm" variant="outline" onClick={() => handleEdit(user)} className="gap-1">
                                 <Edit className="w-4 h-4" />
+                                <span className="hidden lg:inline">Modifier</span>
                               </Button>
-                              <Button size="sm" variant="destructive" onClick={() => handleDelete(user)}>
+                              <Button size="sm" variant="destructive" onClick={() => handleDelete(user)} className="gap-1">
                                 <Trash2 className="w-4 h-4" />
+                                <span className="hidden lg:inline">Supprimer</span>
                               </Button>
                             </div>
                           </TableCell>
