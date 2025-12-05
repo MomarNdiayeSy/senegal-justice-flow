@@ -18,6 +18,12 @@ Ce document décrit en détail toutes les fonctionnalités développées pour la
 10. [Statistiques et Rapports](#10-statistiques-et-rapports)
 11. [Blog et Actualités](#11-blog-et-actualités)
 12. [Chatbot IA](#12-chatbot-ia)
+13. [Glossaire des Termes](#-glossaire-des-termes)
+14. [Architecture Technique](#️-architecture-technique)
+15. [Comptes de Test](#-comptes-de-test)
+16. [API Endpoints](#-api-endpoints)
+17. [Structure des Fichiers](#-structure-des-fichiers)
+18. [État de Synchronisation](#-état-de-synchronisation)
 
 ---
 
@@ -678,6 +684,276 @@ Pour toute question :
 
 ---
 
-**Version** : 2.0.0  
+---
+
+## 🗄️ Architecture Technique
+
+### Architecture Globale
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        FRONTEND (React)                         │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐             │
+│  │  Pages      │  │  Components │  │  Contexts   │             │
+│  │  (6 rôles)  │  │  (shadcn)   │  │  (AppCtx)   │             │
+│  └─────────────┘  └─────────────┘  └─────────────┘             │
+│                           │                                     │
+│  ┌─────────────────────────────────────────────────┐           │
+│  │              API Service Layer                   │           │
+│  │         (src/services/api.ts)                    │           │
+│  └─────────────────────────────────────────────────┘           │
+└────────────────────────────┬────────────────────────────────────┘
+                             │ HTTP/REST
+┌────────────────────────────▼────────────────────────────────────┐
+│                     BACKEND (Node.js/Express)                   │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐             │
+│  │ Controllers │  │  Services   │  │ Middleware  │             │
+│  └─────────────┘  └─────────────┘  └─────────────┘             │
+│                           │                                     │
+│  ┌─────────────────────────────────────────────────┐           │
+│  │            Prisma ORM + PostgreSQL               │           │
+│  └─────────────────────────────────────────────────┘           │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Schéma de la Base de Données (Prisma)
+
+**14 Modèles principaux** :
+
+| Modèle | Description | Relations |
+|--------|-------------|-----------|
+| `User` | Utilisateurs (authentification) | → Profile, UserRole, Notifications |
+| `Profile` | Informations personnelles | → User, Dossiers, Decisions |
+| `UserRole` | Rôles (séparé pour sécurité) | → User |
+| `Dossier` | Affaires judiciaires | → Audiences, Decisions, Pieces |
+| `DossierAvocat` | Liaison dossier-avocat | → Dossier, Profile |
+| `Audience` | Audiences programmées | → Dossier |
+| `Salle` | Salles d'audience | Indépendant |
+| `Decision` | Décisions judiciaires | → Dossier, Profile (juge) |
+| `Instruction` | Instructions juge→greffe | → Profile (juge, greffier) |
+| `Notification` | Notifications multi-canaux | → User |
+| `NotificationPreference` | Préférences utilisateur | → User |
+| `PieceJointe` | Documents attachés | → Dossier |
+| `AuditLog` | Logs d'audit | → User |
+| `BlogPost` | Articles de blog | → User (auteur) |
+
+**Enums définis** :
+
+| Enum | Valeurs |
+|------|---------|
+| `Role` | ADMIN, GREFFIER, JUGE, AVOCAT, PROCUREUR, JUSTICIABLE |
+| `TypeDossier` | PENAL, CIVIL, COMMERCIAL, ADMINISTRATIF, SOCIAL |
+| `StatutDossier` | OUVERT, EN_INSTRUCTION, EN_DELIBERE, CLOS, ARCHIVE |
+| `TypeAudience` | AUDIENCE_PUBLIQUE, CHAMBRE_CONSEIL, FLAGRANT_DELIT, COMPARUTION_IMMEDIATE, APPEL |
+| `StatutAudience` | PROGRAMMEE, EN_COURS, TERMINEE, REPORTEE, ANNULEE |
+| `StatutDecision` | BROUILLON, EN_ATTENTE_VALIDATION, VALIDEE, PUBLIEE |
+| `StatutInstruction` | EN_ATTENTE, EN_COURS, TRAITEE, ANNULEE |
+| `TypeNotification` | 19 types (audiences, dossiers, décisions, instructions, procédures, admin) |
+| `CanalNotification` | EMAIL, SMS, WHATSAPP, IN_APP |
+| `StatutNotification` | EN_ATTENTE, ENVOYE, ECHEC, LU |
+
+---
+
+## 🧪 Comptes de Test
+
+| Rôle | Email | Mot de passe |
+|------|-------|--------------|
+| **Administrateur** | admin@justice.sn | Password123! |
+| **Greffier** | greffier@justice.sn | Password123! |
+| **Juge** | juge.ba@justice.sn | Password123! |
+| **Avocat** | avocat.sy@justice.sn | Password123! |
+| **Procureur** | procureur@justice.sn | Password123! |
+| **Justiciable** | justiciable@justice.sn | Password123! |
+
+> **Note** : Ces comptes sont créés automatiquement par le fichier `backend/prisma/seed.ts`
+
+---
+
+## 🔌 API Endpoints
+
+### Authentification (`/api/auth`)
+
+| Méthode | Endpoint | Description |
+|---------|----------|-------------|
+| POST | `/register` | Inscription |
+| POST | `/login` | Connexion |
+| POST | `/logout` | Déconnexion |
+| POST | `/refresh-token` | Rafraîchir le token |
+| POST | `/forgot-password` | Mot de passe oublié |
+| POST | `/reset-password` | Réinitialiser mot de passe |
+| GET | `/verify` | Vérifier le token |
+
+### Utilisateurs (`/api/users`)
+
+| Méthode | Endpoint | Description |
+|---------|----------|-------------|
+| GET | `/me` | Profil courant |
+| PUT | `/me` | Modifier profil |
+| PUT | `/me/password` | Changer mot de passe |
+| GET | `/` | Liste utilisateurs |
+| POST | `/` | Créer utilisateur |
+| GET | `/:id` | Détail utilisateur |
+| DELETE | `/:id` | Supprimer utilisateur |
+| POST | `/:id/activate` | Activer compte |
+| POST | `/:id/deactivate` | Désactiver compte |
+
+### Dossiers (`/api/dossiers`)
+
+| Méthode | Endpoint | Description |
+|---------|----------|-------------|
+| GET | `/` | Liste dossiers (filtré par rôle) |
+| POST | `/` | Créer dossier |
+| GET | `/:id` | Détail dossier |
+| PUT | `/:id` | Modifier dossier |
+| DELETE | `/:id` | Supprimer dossier |
+| GET | `/:id/historique` | Historique du dossier |
+| POST | `/:id/pieces` | Ajouter pièce |
+| GET | `/:id/pieces` | Liste pièces |
+
+### Audiences (`/api/audiences`)
+
+| Méthode | Endpoint | Description |
+|---------|----------|-------------|
+| GET | `/public` | Audiences publiques (tableau affichage) |
+| GET | `/` | Liste audiences |
+| POST | `/` | Créer audience |
+| GET | `/:id` | Détail audience |
+| GET | `/public/:uuid` | Audience par QR code (public) |
+| PUT | `/:id` | Modifier audience |
+| PUT | `/:id/reporter` | Reporter audience |
+| PUT | `/:id/annuler` | Annuler audience |
+
+### Décisions (`/api/decisions`)
+
+| Méthode | Endpoint | Description |
+|---------|----------|-------------|
+| GET | `/` | Liste décisions |
+| POST | `/` | Créer décision (Juge) |
+| GET | `/:id` | Détail décision |
+| PUT | `/:id` | Modifier décision |
+| PUT | `/:id/submit` | Soumettre pour validation |
+| PUT | `/:id/validate` | Valider (Greffier) |
+| PUT | `/:id/reject` | Rejeter (Greffier) |
+| PUT | `/:id/publish` | Publier (Greffier) |
+| GET | `/history` | Historique décisions |
+
+### Instructions (`/api/instructions`)
+
+| Méthode | Endpoint | Description |
+|---------|----------|-------------|
+| GET | `/` | Liste instructions |
+| POST | `/` | Créer instruction (Juge) |
+| GET | `/:id` | Détail instruction |
+| PUT | `/:id/take-charge` | Prendre en charge (Greffier) |
+| PUT | `/:id/complete` | Compléter (Greffier) |
+| PUT | `/:id/cancel` | Annuler (Juge) |
+
+### Salles (`/api/salles`)
+
+| Méthode | Endpoint | Description |
+|---------|----------|-------------|
+| GET | `/` | Liste salles |
+| GET | `/disponibles` | Salles disponibles |
+| POST | `/` | Créer salle |
+| PUT | `/:id` | Modifier salle |
+| DELETE | `/:id` | Supprimer salle |
+| POST | `/check-disponibilite` | Vérifier disponibilité |
+
+### Notifications (`/api/notifications`)
+
+| Méthode | Endpoint | Description |
+|---------|----------|-------------|
+| GET | `/` | Mes notifications |
+| PUT | `/:id/read` | Marquer comme lue |
+| PUT | `/read-all` | Tout marquer comme lu |
+| POST | `/send` | Envoyer notification (Greffier) |
+| GET | `/preferences` | Mes préférences |
+| PUT | `/preferences` | Modifier préférences |
+
+---
+
+## 📁 Structure des Fichiers
+
+```
+e-Justice-Senegal/
+├── backend/                      # Backend Node.js/Express
+│   ├── prisma/
+│   │   ├── schema.prisma         # Schéma base de données
+│   │   └── seed.ts               # Données de test
+│   ├── src/
+│   │   ├── controllers/          # Contrôleurs API
+│   │   ├── middleware/           # Auth, validation, rate limiting
+│   │   ├── routes/               # Routes API
+│   │   ├── services/             # Services métier
+│   │   └── utils/                # Utilitaires
+│   └── docker-compose.yml        # Configuration Docker
+│
+├── src/                          # Frontend React
+│   ├── components/
+│   │   ├── dashboards/           # Tableaux de bord par rôle
+│   │   └── ui/                   # Composants shadcn/ui
+│   ├── contexts/
+│   │   └── AppContext.tsx        # État global + données mock
+│   ├── hooks/
+│   │   └── usePermissions.ts     # Gestion des permissions
+│   ├── pages/
+│   │   ├── admin/                # Pages administrateur
+│   │   ├── avocat/               # Pages avocat
+│   │   ├── common/               # Pages partagées
+│   │   ├── greffier/             # Pages greffier
+│   │   ├── juge/                 # Pages juge
+│   │   ├── justiciable/          # Pages justiciable
+│   │   └── procureur/            # Pages procureur
+│   └── services/
+│       └── api.ts                # Service API (prêt pour backend)
+│
+├── supabase/functions/           # Edge functions
+│   ├── chat-assistant/           # Chatbot IA
+│   ├── send-email/               # Envoi emails
+│   ├── send-notification/        # Notifications
+│   └── send-sms/                 # Envoi SMS
+│
+├── docs/                         # Documentation technique
+│   ├── DATABASE_SCHEMA.sql       # Schéma SQL
+│   ├── BACKEND_IMPLEMENTATION_GUIDE.md
+│   └── QUICK_START.md
+│
+└── FONCTIONNALITES.md            # Ce document
+```
+
+---
+
+## 🔄 État de Synchronisation
+
+### ✅ Synchronisé
+
+| Composant | Fichier | État |
+|-----------|---------|------|
+| Types Frontend | `AppContext.tsx` | ✅ Aligné avec Prisma |
+| Mock Data | `AppContext.tsx` | ✅ Même structure que seed.ts |
+| API Service | `api.ts` | ✅ Endpoints prêts |
+| Prisma Schema | `schema.prisma` | ✅ 14 modèles complets |
+| Seed Data | `seed.ts` | ✅ 6 comptes + données test |
+| Documentation | `FONCTIONNALITES.md` | ✅ À jour |
+
+### 🔲 À faire pour production
+
+1. **Déployer le backend** Node.js sur un serveur
+2. **Configurer PostgreSQL** avec le schéma Prisma
+3. **Définir les variables d'environnement** (DATABASE_URL, JWT_SECRET, etc.)
+4. **Remplacer les appels mock** par les appels API réels
+5. **Configurer les services externes** (Resend, Twilio)
+
+---
+
+## 📞 Support
+
+Pour toute question :
+- Documentation technique : `/docs`
+- Email : support@ejustice.sn
+
+---
+
+**Version** : 2.1.0  
 **Dernière mise à jour** : Décembre 2025  
 **Équipe** : e-Justice Sénégal
