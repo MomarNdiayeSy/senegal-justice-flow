@@ -21,6 +21,66 @@ Ce document décrit en détail toutes les fonctionnalités développées pour la
 
 ---
 
+## 📖 Glossaire des Termes
+
+Avant de parcourir les fonctionnalités, voici les définitions des termes clés utilisés dans la plateforme :
+
+### Termes Juridiques
+
+| Terme | Définition |
+|-------|------------|
+| **Audience** | Séance au tribunal où le juge entend les parties (justiciable, avocat, procureur) concernant une affaire. L'audience a lieu dans une salle à une date et heure précises. |
+| **Dossier** | Ensemble des documents et informations relatifs à une affaire judiciaire. Chaque dossier contient les pièces, parties impliquées, et l'historique de la procédure. |
+| **Décision** | Jugement rendu par un juge à l'issue d'une audience ou d'une procédure. La décision peut être une condamnation, un acquittement, une ordonnance, etc. |
+| **Instruction** | Directive envoyée par un juge au greffe pour effectuer une action spécifique (reporter une audience, convoquer un témoin, demander des documents, etc.). |
+| **Convocation** | Document officiel invitant une personne à se présenter au tribunal à une date et heure précises pour une audience. |
+| **Greffe** | Service administratif du tribunal chargé de la gestion des dossiers, des convocations, et de l'organisation des audiences. |
+| **Ministère Public** | Ensemble des magistrats (procureurs) chargés de représenter l'État et la société dans les affaires pénales. |
+| **Réquisitoire** | Discours ou document par lequel le procureur expose ses arguments et demande l'application d'une peine. |
+| **Délibéré** | Période pendant laquelle le juge réfléchit avant de rendre sa décision. L'affaire est "mise en délibéré". |
+| **Report** | Renvoi d'une audience à une date ultérieure pour diverses raisons (absence d'une partie, demande de pièces, etc.). |
+| **Clôture** | Fin d'une procédure judiciaire. Un dossier "clôturé" signifie que l'affaire est terminée. |
+| **Archive** | Dossier conservé pour référence après sa clôture, généralement pour une durée légale obligatoire. |
+
+### Termes Liés aux Rôles
+
+| Rôle | Définition |
+|------|------------|
+| **Administrateur** | Gestionnaire national de la plateforme. Supervise tous les tribunaux, consulte les statistiques globales, et gère les paramètres système. |
+| **Greffier** | Agent administratif du tribunal. Crée les audiences, gère les salles, valide les décisions des juges, active les comptes utilisateurs, et envoie les notifications. C'est le pivot central de l'organisation judiciaire. |
+| **Juge** | Magistrat qui préside les audiences, examine les dossiers, rédige les décisions, et envoie des instructions au greffe. |
+| **Procureur** | Magistrat du ministère public représentant l'État. Suit les affaires pénales, formule des réquisitions, et surveille l'application des décisions. |
+| **Avocat** | Professionnel du droit représentant et défendant les intérêts d'un justiciable. Accède aux dossiers de ses clients et consulte les décisions. |
+| **Justiciable** | Citoyen impliqué dans une procédure judiciaire (demandeur, défendeur, victime, prévenu). Peut consulter son dossier et suivre ses audiences. |
+
+### Termes Techniques de la Plateforme
+
+| Terme | Définition |
+|-------|------------|
+| **Instruction (dans la plateforme)** | Message formel envoyé par un juge au greffe via la plateforme pour demander une action. Types : report d'audience, demande de documents, convocation de témoin. Différent de l'instruction judiciaire au sens pénal. |
+| **Validation** | Étape où le greffier vérifie et approuve une décision rédigée par un juge avant sa publication officielle. |
+| **Publication** | Action de rendre une décision visible aux parties concernées (justiciable, avocat, procureur) après validation par le greffe. |
+| **Activation de compte** | Procédure où un greffier vérifie et active un compte utilisateur après son inscription. Mesure de sécurité empêchant les accès non autorisés. |
+| **QR Code** | Code graphique scannable permettant l'accès rapide aux informations d'une audience sans authentification. Utilisé sur les tableaux d'affichage des tribunaux. |
+| **Notification In-App** | Message affiché dans l'application (icône cloche) informant l'utilisateur d'un événement (nouvelle audience, décision, etc.). |
+| **Canal de notification** | Moyen par lequel une notification est envoyée : Email, SMS, WhatsApp, ou In-App. |
+| **Statut** | État actuel d'un élément. Ex: Dossier (Ouvert, En cours, Clos), Audience (Prévue, En cours, Terminée), Décision (Brouillon, Validée, Publiée). |
+| **Filtrage par rôle** | Mécanisme de sécurité qui limite l'accès aux données selon le rôle de l'utilisateur. Un avocat ne voit que les dossiers de ses clients, un justiciable que son propre dossier. |
+| **Tableau d'affichage numérique** | Écran public dans le tribunal affichant les audiences du jour avec leur statut en temps réel et QR codes pour accès mobile. |
+| **Créneaux horaires** | Plages de temps prédéfinies pour planifier les audiences (08h-10h, 10h-12h, etc.). |
+| **Conflit de salle** | Situation où une salle est déjà réservée pour une audience à la même date/heure qu'une nouvelle réservation tentée. |
+
+### Flux de Travail (Workflows)
+
+| Workflow | Description |
+|----------|-------------|
+| **Création de compte** | Inscription → Compte inactif → Vérification par greffier → Activation → Accès autorisé |
+| **Création d'audience** | Sélection dossier → Vérification disponibilité salle → Création → Notifications aux parties |
+| **Cycle de décision** | Brouillon (Juge) → Soumission → Validation (Greffier) → Publication → Notification aux parties |
+| **Traitement d'instruction** | Création (Juge) → Prise en charge (Greffier) → Exécution → Notification de complétion |
+
+---
+
 ## 1. Authentification et Gestion des Comptes
 
 ### 1.1 Inscription des utilisateurs
