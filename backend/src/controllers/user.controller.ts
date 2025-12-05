@@ -5,6 +5,7 @@ import { ApiError } from '../utils/ApiError';
 import { AuthRequest } from '../middleware/auth';
 import { logger } from '../utils/logger';
 import { config } from '../config/env';
+import { sendEmail, createNotification } from '../services/notification.service';
 
 export const getMe = async (req: AuthRequest, res: Response) => {
   const userId = req.user?.userId;
@@ -201,15 +202,96 @@ export const activateUser = async (req: AuthRequest, res: Response) => {
 
   logger.info(`User activated: ${updatedUser.email} by ${req.user?.email}`);
 
+  // Envoyer email de notification à l'utilisateur
+  const roleLabel = updatedUser.roles.map(r => r.role).join(', ');
+  await sendEmail({
+    to: updatedUser.email,
+    subject: '✓ Votre compte e-Justice Sénégal a été activé',
+    html: generateActivationEmail(
+      updatedUser.profile?.prenom || '',
+      updatedUser.profile?.nom || '',
+      roleLabel
+    ),
+  });
+
+  // Créer une notification in-app
+  await createNotification({
+    userId: updatedUser.id,
+    type: 'UTILISATEUR_CREE',
+    titre: 'Compte activé',
+    message: 'Votre compte a été activé. Vous pouvez maintenant vous connecter à la plateforme.',
+    canal: 'IN_APP',
+    actionUrl: '/auth',
+  });
+
+  logger.info(`Activation email sent to: ${updatedUser.email}`);
+
   res.json({
     success: true,
-    message: `Compte de ${updatedUser.profile?.prenom} ${updatedUser.profile?.nom} activé avec succès`,
+    message: `Compte de ${updatedUser.profile?.prenom} ${updatedUser.profile?.nom} activé avec succès. Un email a été envoyé.`,
     data: {
       id: updatedUser.id,
       email: updatedUser.email,
       isActive: updatedUser.isActive,
     },
   });
+};
+
+// Générer le template d'email d'activation
+const generateActivationEmail = (prenom: string, nom: string, role: string): string => {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Compte Activé</title>
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #003366, #004d99); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+        .header h1 { margin: 0; font-size: 24px; }
+        .content { background: #ffffff; padding: 40px; border: 1px solid #e0e0e0; }
+        .success-badge { background: #10b981; color: white; padding: 8px 16px; border-radius: 20px; display: inline-block; font-size: 14px; margin-bottom: 20px; }
+        .info-box { background: #f0f9ff; border-left: 4px solid #003366; padding: 15px; margin: 20px 0; }
+        .button { display: inline-block; background: #003366; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; margin-top: 20px; font-weight: bold; }
+        .button:hover { background: #004d99; }
+        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; background: #f5f5f5; border-radius: 0 0 8px 8px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>⚖️ e-Justice Sénégal</h1>
+          <p style="margin: 10px 0 0 0; opacity: 0.9;">Plateforme de Gestion Judiciaire</p>
+        </div>
+        <div class="content">
+          <span class="success-badge">✓ Compte Activé</span>
+          <h2 style="color: #003366; margin-top: 10px;">Bienvenue ${prenom} ${nom} !</h2>
+          <p>Nous avons le plaisir de vous informer que votre compte sur la plateforme <strong>e-Justice Sénégal</strong> a été activé avec succès.</p>
+          
+          <div class="info-box">
+            <p style="margin: 0;"><strong>Détails de votre compte :</strong></p>
+            <ul style="margin: 10px 0 0 0; padding-left: 20px;">
+              <li>Rôle : <strong>${role}</strong></li>
+              <li>Statut : <strong style="color: #10b981;">Actif</strong></li>
+            </ul>
+          </div>
+          
+          <p>Vous pouvez dès maintenant vous connecter à la plateforme pour accéder à vos services judiciaires.</p>
+          
+          <center>
+            <a href="${config.corsOrigin}/auth" class="button">Se connecter</a>
+          </center>
+        </div>
+        <div class="footer">
+          <p>© ${new Date().getFullYear()} e-Justice Sénégal - Ministère de la Justice</p>
+          <p>Ceci est un message automatique, merci de ne pas y répondre.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
 };
 
 // Désactiver un compte utilisateur (Greffier/Admin)
