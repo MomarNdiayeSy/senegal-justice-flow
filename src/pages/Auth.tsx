@@ -291,10 +291,21 @@ const Auth = () => {
                     addUser(newUser);
                     toast({
                       title: "✓ Inscription enregistrée",
-                      description: "Votre demande a été enregistrée. Votre compte sera activé par le greffier après vérification.",
+                      description: "Votre demande a été enregistrée. Vous recevrez un email dès que votre compte sera activé par le greffier.",
+                      duration: 8000,
                     });
                     setIsLoading(false);
                     // Ne pas connecter automatiquement - le compte n'est pas encore activé
+                    // Réinitialiser le formulaire
+                    setSignupData({
+                      email: "",
+                      password: "",
+                      nom: "",
+                      prenom: "",
+                      role: "" as UserRole,
+                      telephone: "",
+                      tribunal: ""
+                    });
                   }, 800);
                 }} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
