@@ -1,5 +1,23 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
+// Types
+export interface ApiResponse<T> {
+  success: boolean;
+  message?: string;
+  data: T;
+}
+
+export interface PaginatedResponse<T> {
+  success: boolean;
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
 // Token management
 export const tokenManager = {
   getAccessToken: () => localStorage.getItem('accessToken'),
@@ -36,10 +54,8 @@ async function apiRequest<T>(
   });
 
   if (response.status === 401) {
-    // Token expiré, essayer de rafraîchir
     const refreshed = await refreshAccessToken();
     if (refreshed) {
-      // Réessayer la requête avec le nouveau token
       headers['Authorization'] = `Bearer ${tokenManager.getAccessToken()}`;
       const retryResponse = await fetch(`${API_URL}${endpoint}`, {
         ...options,
@@ -47,7 +63,6 @@ async function apiRequest<T>(
       });
       return handleResponse<T>(retryResponse);
     } else {
-      // Impossible de rafraîchir, déconnecter
       tokenManager.clearTokens();
       window.location.href = '/auth';
       throw new Error('Session expirée');
@@ -89,7 +104,7 @@ async function refreshAccessToken(): Promise<boolean> {
   }
 }
 
-// Auth API
+// ==================== AUTH API ====================
 export const authAPI = {
   register: async (data: {
     email: string;
@@ -137,9 +152,13 @@ export const authAPI = {
       body: JSON.stringify({ token, password }),
     });
   },
+
+  verifyToken: async () => {
+    return apiRequest<any>('/auth/verify');
+  },
 };
 
-// User API
+// ==================== USER API ====================
 export const userAPI = {
   getMe: () => apiRequest<any>('/users/me'),
   
@@ -148,26 +167,46 @@ export const userAPI = {
     prenom?: string;
     telephone?: string;
     adresse?: string;
+    avatarUrl?: string;
   }) => apiRequest<any>('/users/me', {
     method: 'PUT',
     body: JSON.stringify(data),
   }),
 
   getUserById: (id: string) => apiRequest<any>(`/users/${id}`),
+
+  changePassword: (currentPassword: string, newPassword: string) => 
+    apiRequest<any>('/users/me/password', {
+      method: 'PUT',
+      body: JSON.stringify({ currentPassword, newPassword }),
+    }),
 };
 
-// Dossier API
+// ==================== DOSSIER API ====================
 export const dossierAPI = {
-  list: () => apiRequest<any>('/dossiers'),
+  list: (params?: { page?: number; limit?: number; statut?: string; type?: string }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.statut) queryParams.append('statut', params.statut);
+    if (params?.type) queryParams.append('type', params.type);
+    const query = queryParams.toString();
+    return apiRequest<any>(`/dossiers${query ? `?${query}` : ''}`);
+  },
 
   create: (data: {
     numeroDossier: string;
     titre: string;
     description?: string;
     type: string;
+    tribunal: string;
+    chambre?: string;
     jugeId?: string;
-    avocatId?: string;
-    justiciableId?: string;
+    procureurId?: string;
+    justiciableId: string;
+    avocatIds?: string[];
+    montantLitige?: number;
+    observations?: string;
   }) => apiRequest<any>('/dossiers', {
     method: 'POST',
     body: JSON.stringify(data),
@@ -180,6 +219,7 @@ export const dossierAPI = {
     description?: string;
     statut?: string;
     type?: string;
+    observations?: string;
   }) => apiRequest<any>(`/dossiers/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data),
@@ -188,13 +228,37 @@ export const dossierAPI = {
   delete: (id: string) => apiRequest<any>(`/dossiers/${id}`, {
     method: 'DELETE',
   }),
+
+  getHistorique: (id: string) => apiRequest<any>(`/dossiers/${id}/historique`),
+
+  addPiece: (id: string, data: {
+    nom: string;
+    description?: string;
+    typeFichier: string;
+    tailleFichier: number;
+    urlFichier: string;
+    confidentiel?: boolean;
+  }) => apiRequest<any>(`/dossiers/${id}/pieces`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+
+  getPieces: (id: string) => apiRequest<any>(`/dossiers/${id}/pieces`),
 };
 
-// Audience API
+// ==================== AUDIENCE API ====================
 export const audienceAPI = {
   listPublic: () => apiRequest<any>('/audiences/public'),
 
-  list: () => apiRequest<any>('/audiences'),
+  list: (params?: { page?: number; limit?: number; date?: string; salle?: string }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.date) queryParams.append('date', params.date);
+    if (params?.salle) queryParams.append('salle', params.salle);
+    const query = queryParams.toString();
+    return apiRequest<any>(`/audiences${query ? `?${query}` : ''}`);
+  },
 
   create: (data: {
     dossierId: string;
@@ -202,8 +266,10 @@ export const audienceAPI = {
     heureDebut: string;
     heureFin?: string;
     salle: string;
-    type: string;
-    estPublique?: boolean;
+    typeAudience: string;
+    objetAudience: string;
+    observations?: string;
+    publicationWeb?: boolean;
   }) => apiRequest<any>('/audiences', {
     method: 'POST',
     body: JSON.stringify(data),
@@ -211,9 +277,22 @@ export const audienceAPI = {
 
   getById: (id: string) => apiRequest<any>(`/audiences/${id}`),
 
+  getByUuid: (uuid: string) => apiRequest<any>(`/audiences/public/${uuid}`),
+
   update: (id: string, data: any) => apiRequest<any>(`/audiences/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data),
+  }),
+
+  reporter: (id: string, data: { nouvelleDate: string; nouvelHeure: string; motif: string }) => 
+    apiRequest<any>(`/audiences/${id}/reporter`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  annuler: (id: string, motif: string) => apiRequest<any>(`/audiences/${id}/annuler`, {
+    method: 'PUT',
+    body: JSON.stringify({ motif }),
   }),
 
   cancel: (id: string) => apiRequest<any>(`/audiences/${id}`, {
@@ -221,13 +300,183 @@ export const audienceAPI = {
   }),
 };
 
-// Notification API
+// ==================== DECISION API ====================
+export const decisionAPI = {
+  list: (params?: { page?: number; limit?: number; statut?: string }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.statut) queryParams.append('statut', params.statut);
+    const query = queryParams.toString();
+    return apiRequest<any>(`/decisions${query ? `?${query}` : ''}`);
+  },
+
+  create: (data: {
+    dossierId: string;
+    numeroDecision: string;
+    typeDecision: string;
+    dateDelibere: string;
+    dispositif: string;
+    motivationComplete?: string;
+    sensPrononce?: string;
+  }) => apiRequest<any>('/decisions', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+
+  getById: (id: string) => apiRequest<any>(`/decisions/${id}`),
+
+  update: (id: string, data: {
+    dispositif?: string;
+    motivationComplete?: string;
+    sensPrononce?: string;
+  }) => apiRequest<any>(`/decisions/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+
+  // Soumettre pour validation (Juge)
+  submitForValidation: (id: string) => 
+    apiRequest<any>(`/decisions/${id}/submit`, { method: 'PUT' }),
+
+  // Valider la décision (Greffier)
+  validate: (id: string, commentaire?: string) => 
+    apiRequest<any>(`/decisions/${id}/validate`, {
+      method: 'PUT',
+      body: JSON.stringify({ commentaire }),
+    }),
+
+  // Rejeter la décision (Greffier)
+  reject: (id: string, motif: string) => 
+    apiRequest<any>(`/decisions/${id}/reject`, {
+      method: 'PUT',
+      body: JSON.stringify({ motif }),
+    }),
+
+  // Publier la décision (Greffier)
+  publish: (id: string) => 
+    apiRequest<any>(`/decisions/${id}/publish`, { method: 'PUT' }),
+
+  // Historique des décisions
+  getHistory: (params?: { dossierId?: string; jugeId?: string }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.dossierId) queryParams.append('dossierId', params.dossierId);
+    if (params?.jugeId) queryParams.append('jugeId', params.jugeId);
+    const query = queryParams.toString();
+    return apiRequest<any>(`/decisions/history${query ? `?${query}` : ''}`);
+  },
+};
+
+// ==================== INSTRUCTION API ====================
+export const instructionAPI = {
+  list: (params?: { page?: number; limit?: number; statut?: string }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.statut) queryParams.append('statut', params.statut);
+    const query = queryParams.toString();
+    return apiRequest<any>(`/instructions${query ? `?${query}` : ''}`);
+  },
+
+  create: (data: {
+    type: string;
+    titre: string;
+    description: string;
+    priorite?: string;
+    dossierId?: string;
+    audienceId?: string;
+    dateEcheance?: string;
+  }) => apiRequest<any>('/instructions', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+
+  getById: (id: string) => apiRequest<any>(`/instructions/${id}`),
+
+  // Prendre en charge (Greffier)
+  takeCharge: (id: string) => 
+    apiRequest<any>(`/instructions/${id}/take-charge`, { method: 'PUT' }),
+
+  // Marquer comme traitée (Greffier)
+  complete: (id: string, commentaire: string) => 
+    apiRequest<any>(`/instructions/${id}/complete`, {
+      method: 'PUT',
+      body: JSON.stringify({ commentaire }),
+    }),
+
+  // Annuler (Juge)
+  cancel: (id: string) => 
+    apiRequest<any>(`/instructions/${id}/cancel`, { method: 'PUT' }),
+};
+
+// ==================== SALLE API ====================
+export const salleAPI = {
+  list: () => apiRequest<any>('/salles'),
+
+  getDisponibles: () => apiRequest<any>('/salles/disponibles'),
+
+  getById: (id: string) => apiRequest<any>(`/salles/${id}`),
+
+  create: (data: {
+    nom: string;
+    capacite?: number;
+    equipements?: string[];
+    etage?: string;
+    batiment?: string;
+  }) => apiRequest<any>('/salles', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+
+  update: (id: string, data: {
+    nom?: string;
+    capacite?: number;
+    equipements?: string[];
+    disponible?: boolean;
+    etage?: string;
+    batiment?: string;
+  }) => apiRequest<any>(`/salles/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+
+  delete: (id: string) => apiRequest<any>(`/salles/${id}`, {
+    method: 'DELETE',
+  }),
+
+  checkDisponibilite: (data: {
+    salleNom: string;
+    date: string;
+    heureDebut: string;
+    heureFin?: string;
+    excludeAudienceId?: string;
+  }) => apiRequest<any>('/salles/check-disponibilite', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+};
+
+// ==================== NOTIFICATION API ====================
 export const notificationAPI = {
-  list: () => apiRequest<any>('/notifications'),
+  list: (params?: { page?: number; limit?: number; type?: string; lu?: boolean }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.type) queryParams.append('type', params.type);
+    if (params?.lu !== undefined) queryParams.append('lu', params.lu.toString());
+    const query = queryParams.toString();
+    return apiRequest<any>(`/notifications${query ? `?${query}` : ''}`);
+  },
 
   markAsRead: (id: string) => apiRequest<any>(`/notifications/${id}/read`, {
     method: 'PUT',
   }),
+
+  markAllAsRead: () => apiRequest<any>('/notifications/read-all', {
+    method: 'PUT',
+  }),
+
+  getUnreadCount: () => apiRequest<any>('/notifications/unread-count'),
 
   getPreferences: () => apiRequest<any>('/notifications/preferences'),
 
@@ -235,11 +484,44 @@ export const notificationAPI = {
     method: 'PUT',
     body: JSON.stringify(data),
   }),
+
+  // Envoyer notification manuelle (Greffier)
+  send: (data: {
+    userId: string;
+    type: string;
+    titre: string;
+    message: string;
+    canal: string;
+    dossierId?: string;
+    audienceId?: string;
+  }) => apiRequest<any>('/notifications/send', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+
+  // Envoyer notification en masse
+  sendBulk: (data: {
+    userIds: string[];
+    type: string;
+    titre: string;
+    message: string;
+    canal: string;
+  }) => apiRequest<any>('/notifications/send-bulk', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
 };
 
-// Blog API
+// ==================== BLOG API ====================
 export const blogAPI = {
-  list: () => apiRequest<any>('/blog'),
+  list: (params?: { page?: number; limit?: number; publie?: boolean }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.publie !== undefined) queryParams.append('publie', params.publie.toString());
+    const query = queryParams.toString();
+    return apiRequest<any>(`/blog${query ? `?${query}` : ''}`);
+  },
 
   getBySlug: (slug: string) => apiRequest<any>(`/blog/${slug}`),
 
@@ -247,9 +529,10 @@ export const blogAPI = {
     titre: string;
     slug: string;
     contenu: string;
-    extrait?: string;
+    resume?: string;
     imageUrl?: string;
     publie?: boolean;
+    tags?: string[];
   }) => apiRequest<any>('/blog', {
     method: 'POST',
     body: JSON.stringify(data),
@@ -263,9 +546,13 @@ export const blogAPI = {
   delete: (id: string) => apiRequest<any>(`/blog/${id}`, {
     method: 'DELETE',
   }),
+
+  publish: (id: string) => apiRequest<any>(`/blog/${id}/publish`, {
+    method: 'PUT',
+  }),
 };
 
-// Document API
+// ==================== DOCUMENT API ====================
 export const documentAPI = {
   listPublic: () => apiRequest<any>('/documents/public'),
 
@@ -274,30 +561,106 @@ export const documentAPI = {
   upload: (data: {
     titre: string;
     description?: string;
-    type: string;
-    url: string;
-    ordre?: number;
+    categorie: string;
+    typeFichier: string;
+    urlFichier: string;
+    tailleFichier: number;
+    tags?: string[];
+    publie?: boolean;
   }) => apiRequest<any>('/documents', {
     method: 'POST',
     body: JSON.stringify(data),
   }),
+
+  update: (id: string, data: any) => apiRequest<any>(`/documents/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+
+  delete: (id: string) => apiRequest<any>(`/documents/${id}`, {
+    method: 'DELETE',
+  }),
 };
 
-// Admin API
+// ==================== ADMIN API ====================
 export const adminAPI = {
-  listUsers: () => apiRequest<any>('/admin/users'),
+  // Utilisateurs
+  listUsers: (params?: { page?: number; limit?: number; role?: string }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.role) queryParams.append('role', params.role);
+    const query = queryParams.toString();
+    return apiRequest<any>(`/admin/users${query ? `?${query}` : ''}`);
+  },
+
+  getUserById: (id: string) => apiRequest<any>(`/admin/users/${id}`),
+
+  createUser: (data: {
+    email: string;
+    password: string;
+    nom: string;
+    prenom: string;
+    telephone?: string;
+    role: string;
+  }) => apiRequest<any>('/admin/users', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+
+  updateUser: (id: string, data: any) => apiRequest<any>(`/admin/users/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+
+  deleteUser: (id: string) => apiRequest<any>(`/admin/users/${id}`, {
+    method: 'DELETE',
+  }),
 
   changeUserRole: (id: string, role: string) => apiRequest<any>(`/admin/users/${id}/role`, {
     method: 'PUT',
     body: JSON.stringify({ role }),
   }),
 
+  toggleUserStatus: (id: string) => apiRequest<any>(`/admin/users/${id}/toggle-status`, {
+    method: 'PUT',
+  }),
+
+  // Statistiques
   getStats: () => apiRequest<any>('/admin/stats'),
 
-  getAuditLogs: () => apiRequest<any>('/admin/audit-logs'),
+  getStatsByPeriod: (startDate: string, endDate: string) => 
+    apiRequest<any>(`/admin/stats/period?start=${startDate}&end=${endDate}`),
+
+  getMonthlyEvolution: () => apiRequest<any>('/admin/stats/monthly'),
+
+  getJugePerformance: () => apiRequest<any>('/admin/stats/juge-performance'),
+
+  getPostponementAnalysis: () => apiRequest<any>('/admin/stats/postponements'),
+
+  // Audit
+  getAuditLogs: (params?: { page?: number; limit?: number; action?: string; userId?: string }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.action) queryParams.append('action', params.action);
+    if (params?.userId) queryParams.append('userId', params.userId);
+    const query = queryParams.toString();
+    return apiRequest<any>(`/admin/audit-logs${query ? `?${query}` : ''}`);
+  },
+
+  getSuspiciousActivity: () => apiRequest<any>('/admin/audit-logs/suspicious'),
+
+  // Paramètres système
+  getSystemSettings: () => apiRequest<any>('/admin/settings'),
+
+  updateSystemSettings: (data: any) => apiRequest<any>('/admin/settings', {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
 };
 
-// AI API
+// ==================== AI API ====================
 export const aiAPI = {
   chat: (message: string, context?: any) => apiRequest<any>('/ai/chat', {
     method: 'POST',
@@ -308,4 +671,24 @@ export const aiAPI = {
     method: 'POST',
     body: JSON.stringify({ type, context }),
   }),
+
+  analyzeDocument: (documentId: string) => apiRequest<any>('/ai/analyze-document', {
+    method: 'POST',
+    body: JSON.stringify({ documentId }),
+  }),
+
+  predictPostponement: (audienceId: string) => apiRequest<any>('/ai/predict-postponement', {
+    method: 'POST',
+    body: JSON.stringify({ audienceId }),
+  }),
+};
+
+// ==================== STATS API ====================
+export const statsAPI = {
+  getGlobal: () => apiRequest<any>('/admin/stats'),
+  getMonthly: () => apiRequest<any>('/admin/stats/monthly'),
+  getJugePerformance: () => apiRequest<any>('/admin/stats/juge-performance'),
+  getPostponements: () => apiRequest<any>('/admin/stats/postponements'),
+  getDossiersByType: () => apiRequest<any>('/admin/stats/dossiers-by-type'),
+  getTodayAudiences: () => apiRequest<any>('/admin/stats/today-audiences'),
 };
