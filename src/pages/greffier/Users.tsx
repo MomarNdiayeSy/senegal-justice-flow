@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Users, Plus, Edit, Trash2, Search, UserCheck, Shield, Mail, Phone } from "lucide-react";
+import { Users, Plus, Edit, Trash2, Search, UserCheck, Shield, Mail, Phone, CheckCircle, XCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +21,7 @@ const GreffierUsers = () => {
   const [editingUser, setEditingUser] = useState<typeof users[0] | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterRole, setFilterRole] = useState("__all__");
+  const [filterStatus, setFilterStatus] = useState("__all__");
 
   const [formData, setFormData] = useState({
     nom: "",
@@ -31,9 +32,12 @@ const GreffierUsers = () => {
     tribunal: "Tribunal de Dakar"
   });
 
-  // Le greffier ne peut pas gérer les admins
+  // Le greffier ne peut pas gérer les admins ni les greffiers
   const manageableRoles: UserRole[] = ["juge", "procureur", "avocat", "justiciable"];
   const manageableUsers = users.filter(u => manageableRoles.includes(u.role) && u.id !== currentUser?.id);
+
+  // Comptes en attente d'activation
+  const pendingUsers = manageableUsers.filter(u => !u.actif);
 
   const getRoleBadge = (role: UserRole) => {
     const config: Record<UserRole, { style: string; label: string }> = {
@@ -53,7 +57,10 @@ const GreffierUsers = () => {
       u.prenom.toLowerCase().includes(searchTerm.toLowerCase()) ||
       u.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchRole = filterRole === "__all__" || u.role === filterRole;
-    return matchSearch && matchRole;
+    const matchStatus = filterStatus === "__all__" || 
+      (filterStatus === "actif" && u.actif) || 
+      (filterStatus === "inactif" && !u.actif);
+    return matchSearch && matchRole && matchStatus;
   });
 
   const handleSubmit = () => {
@@ -70,8 +77,8 @@ const GreffierUsers = () => {
       updateUser(editingUser.id, formData);
       toast({ title: "Utilisateur modifié", description: `${formData.prenom} ${formData.nom} a été mis à jour` });
     } else {
-      addUser(formData);
-      toast({ title: "Utilisateur créé", description: `${formData.prenom} ${formData.nom} a été ajouté` });
+      addUser({ ...formData, actif: true });
+      toast({ title: "Utilisateur créé", description: `${formData.prenom} ${formData.nom} a été ajouté et activé` });
     }
 
     addLog({
@@ -107,6 +114,33 @@ const GreffierUsers = () => {
     });
   };
 
+  const handleActivate = (user: typeof users[0]) => {
+    updateUser(user.id, { actif: true });
+    toast({ 
+      title: "Compte activé", 
+      description: `Le compte de ${user.prenom} ${user.nom} a été activé. L'utilisateur peut maintenant se connecter.` 
+    });
+    addLog({
+      userId: currentUser?.id || "",
+      action: "Activation compte",
+      details: `Compte de ${user.prenom} ${user.nom} (${user.role}) activé`
+    });
+  };
+
+  const handleDeactivate = (user: typeof users[0]) => {
+    updateUser(user.id, { actif: false });
+    toast({ 
+      title: "Compte désactivé", 
+      description: `Le compte de ${user.prenom} ${user.nom} a été désactivé.`,
+      variant: "destructive"
+    });
+    addLog({
+      userId: currentUser?.id || "",
+      action: "Désactivation compte",
+      details: `Compte de ${user.prenom} ${user.nom} (${user.role}) désactivé`
+    });
+  };
+
   const resetForm = () => {
     setFormData({
       nom: "",
@@ -120,6 +154,7 @@ const GreffierUsers = () => {
   };
 
   const stats = [
+    { label: "En attente", count: pendingUsers.length, color: "bg-orange-100 text-orange-700" },
     { label: "Juges", count: manageableUsers.filter(u => u.role === "juge").length, color: "bg-purple-100 text-purple-700" },
     { label: "Procureurs", count: manageableUsers.filter(u => u.role === "procureur").length, color: "bg-indigo-100 text-indigo-700" },
     { label: "Avocats", count: manageableUsers.filter(u => u.role === "avocat").length, color: "bg-teal-100 text-teal-700" },
@@ -221,7 +256,7 @@ const GreffierUsers = () => {
         </motion.div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           {stats.map((stat, index) => (
             <motion.div
               key={stat.label}
@@ -229,7 +264,7 @@ const GreffierUsers = () => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card>
+              <Card className={stat.label === "En attente" && stat.count > 0 ? "border-orange-300 bg-orange-50" : ""}>
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div>
@@ -271,6 +306,16 @@ const GreffierUsers = () => {
                   <SelectItem value="justiciable">Justiciables</SelectItem>
                 </SelectContent>
               </Select>
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="w-full md:w-[180px]">
+                  <SelectValue placeholder="Filtrer par statut" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">Tous les statuts</SelectItem>
+                  <SelectItem value="actif">Comptes actifs</SelectItem>
+                  <SelectItem value="inactif">En attente d'activation</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </CardContent>
         </Card>
@@ -290,6 +335,7 @@ const GreffierUsers = () => {
                   <TableRow>
                     <TableHead>Utilisateur</TableHead>
                     <TableHead>Rôle</TableHead>
+                    <TableHead>Statut</TableHead>
                     <TableHead className="hidden md:table-cell">Contact</TableHead>
                     <TableHead className="hidden lg:table-cell">Tribunal</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -298,7 +344,7 @@ const GreffierUsers = () => {
                 <TableBody>
                   {filteredUsers.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                         Aucun utilisateur trouvé
                       </TableCell>
                     </TableRow>
@@ -306,7 +352,7 @@ const GreffierUsers = () => {
                     filteredUsers.map((user) => {
                       const roleBadge = getRoleBadge(user.role);
                       return (
-                        <TableRow key={user.id}>
+                        <TableRow key={user.id} className={!user.actif ? "bg-orange-50" : ""}>
                           <TableCell>
                             <div className="flex items-center gap-3">
                               <Avatar className="w-10 h-10">
@@ -321,6 +367,19 @@ const GreffierUsers = () => {
                           </TableCell>
                           <TableCell>
                             <Badge className={roleBadge.style}>{roleBadge.label}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            {user.actif ? (
+                              <Badge className="bg-green-100 text-green-700">
+                                <CheckCircle className="w-3 h-3 mr-1" />
+                                Actif
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-orange-100 text-orange-700">
+                                <XCircle className="w-3 h-3 mr-1" />
+                                En attente
+                              </Badge>
+                            )}
                           </TableCell>
                           <TableCell className="hidden md:table-cell">
                             <div className="space-y-1 text-sm">
@@ -337,6 +396,15 @@ const GreffierUsers = () => {
                           <TableCell className="hidden lg:table-cell">{user.tribunal}</TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
+                              {!user.actif ? (
+                                <Button size="sm" variant="default" onClick={() => handleActivate(user)} className="bg-green-600 hover:bg-green-700">
+                                  <CheckCircle className="w-4 h-4" />
+                                </Button>
+                              ) : (
+                                <Button size="sm" variant="outline" onClick={() => handleDeactivate(user)}>
+                                  <XCircle className="w-4 h-4" />
+                                </Button>
+                              )}
                               <Button size="sm" variant="outline" onClick={() => handleEdit(user)}>
                                 <Edit className="w-4 h-4" />
                               </Button>

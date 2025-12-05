@@ -106,7 +106,7 @@ const Users = () => {
         return;
       }
       
-      addUser(formData);
+      addUser({ ...formData, actif: true });
       toast({
         title: "✓ Utilisateur créé",
         description: `${formData.prenom} ${formData.nom} a été ajouté avec succès. Mot de passe par défaut: 123456`

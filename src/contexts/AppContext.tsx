@@ -14,6 +14,7 @@ export interface User {
   photo?: string;
   dateCreation: string;
   dernierAcces?: string;
+  actif: boolean; // Compte activé par le greffier
 }
 
 export interface Audience {
@@ -185,7 +186,8 @@ const mockUsers: User[] = [
     telephone: "+221 77 123 45 67",
     tribunal: "Tribunal de Dakar",
     dateCreation: "2024-01-01",
-    dernierAcces: new Date().toISOString()
+    dernierAcces: new Date().toISOString(),
+    actif: true
   },
   {
     id: "2",
@@ -195,7 +197,8 @@ const mockUsers: User[] = [
     role: "greffier",
     telephone: "+221 77 234 56 78",
     tribunal: "Tribunal de Dakar",
-    dateCreation: "2024-01-15"
+    dateCreation: "2024-01-15",
+    actif: true
   },
   {
     id: "3",
@@ -205,7 +208,8 @@ const mockUsers: User[] = [
     role: "juge",
     telephone: "+221 77 345 67 89",
     tribunal: "Tribunal de Dakar",
-    dateCreation: "2024-02-01"
+    dateCreation: "2024-02-01",
+    actif: true
   },
   {
     id: "4",
@@ -215,7 +219,8 @@ const mockUsers: User[] = [
     role: "avocat",
     telephone: "+221 77 456 78 90",
     tribunal: "Barreau de Dakar",
-    dateCreation: "2024-02-10"
+    dateCreation: "2024-02-10",
+    actif: true
   },
   {
     id: "5",
@@ -225,7 +230,8 @@ const mockUsers: User[] = [
     role: "procureur",
     telephone: "+221 77 567 89 01",
     tribunal: "Tribunal de Dakar",
-    dateCreation: "2024-02-15"
+    dateCreation: "2024-02-15",
+    actif: true
   },
   {
     id: "6",
@@ -235,7 +241,8 @@ const mockUsers: User[] = [
     role: "justiciable",
     telephone: "+221 77 678 90 12",
     tribunal: "N/A",
-    dateCreation: "2024-03-01"
+    dateCreation: "2024-03-01",
+    actif: true
   }
 ];
 
@@ -874,7 +881,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const user = users.find(u => u.email === email);
     
     if (!user) {
-      // Log failed login attempt
       addLog({
         userId: "system",
         action: "Connexion échouée",
@@ -883,10 +889,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       return { success: false, message: "Email ou mot de passe incorrect" };
     }
     
-    // Simulation de vérification de mot de passe (en production, utilisez un hash)
-    // Pour les tests, le mot de passe est "123456" pour tous les utilisateurs
+    // Vérifier si le compte est actif
+    if (!user.actif) {
+      addLog({
+        userId: user.id,
+        action: "Connexion échouée",
+        details: `Tentative de connexion échouée pour ${user.prenom} ${user.nom} (compte non activé)`
+      });
+      return { success: false, message: "Votre compte n'est pas encore activé. Veuillez attendre la validation par le greffier." };
+    }
+    
+    // Simulation de vérification de mot de passe
     if (password !== "123456") {
-      // Log failed login attempt
       addLog({
         userId: user.id,
         action: "Connexion échouée",
@@ -895,12 +909,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       return { success: false, message: "Email ou mot de passe incorrect" };
     }
     
-    // Update user last access
     const updatedUser = { ...user, dernierAcces: new Date().toISOString() };
     setUsers(users.map(u => u.id === user.id ? updatedUser : u));
     setCurrentUser(updatedUser);
     
-    // Log successful login
     addLog({
       userId: user.id,
       action: "Connexion",
