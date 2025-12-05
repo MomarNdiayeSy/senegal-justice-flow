@@ -2,353 +2,570 @@
 
 ## 📋 Vue d'ensemble
 
-Ce guide explique comment utiliser les fichiers backend créés pour implémenter la plateforme e-Justice Sénégal avec Lovable Cloud (Supabase).
+Ce guide explique comment déployer et configurer le backend Node.js/Express/PostgreSQL pour la plateforme e-Justice Sénégal.
 
-## 📁 Structure des Fichiers
+## 🏗️ Architecture
 
 ```
-supabase/
-├── migrations/              # Migrations SQL pour la base de données
-│   ├── 20250101000001_initial_schema.sql
-│   ├── 20250101000002_rls_security_functions.sql
-│   ├── 20250101000003_dossiers_tables.sql
-│   ├── 20250101000004_dossiers_rls_policies.sql
-│   ├── 20250101000005_audiences_tables.sql
-│   ├── 20250101000006_audiences_rls_policies.sql
-│   ├── 20250101000007_notifications_tables.sql
-│   ├── 20250101000008_notifications_rls_policies.sql
-│   ├── 20250101000009_blog_tables.sql
-│   ├── 20250101000010_blog_rls_policies.sql
-│   ├── 20250101000011_autres_tables.sql
-│   └── 20250101000012_storage_buckets.sql
-├── functions/              # Edge Functions
-│   ├── send-notification/
-│   ├── chat-assistant/
-│   ├── send-email/
-│   └── send-sms/
-└── config.toml            # Configuration Supabase
-
-docs/
-├── DATABASE_SCHEMA.sql    # Schéma complet de la base de données
-├── BACKEND_ROADMAP.md     # Feuille de route détaillée
-└── BACKEND_IMPLEMENTATION_GUIDE.md  # Ce fichier
+┌─────────────────────────────────────────────────────────────┐
+│                    FRONTEND (React)                          │
+│                    http://localhost:5173                     │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                    API REST (JWT Auth)
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    BACKEND (Node.js)                         │
+│                    http://localhost:3001                     │
+│  ┌─────────┐  ┌────────────┐  ┌────────────┐               │
+│  │ Express │──│ Controllers│──│ Services   │               │
+│  │ Routes  │  │            │  │            │               │
+│  └─────────┘  └────────────┘  └────────────┘               │
+│       │                              │                       │
+│       ▼                              ▼                       │
+│  ┌─────────┐                  ┌────────────┐               │
+│  │Middleware│                 │  Prisma    │               │
+│  │(Auth,RLS)│                 │   ORM      │               │
+│  └─────────┘                  └────────────┘               │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    PostgreSQL 15+                            │
+│                    Port: 5432                                │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-## 🚀 Étapes d'Implémentation
+## 📁 Structure du Backend
 
-### 1. Activer Lovable Cloud
+```
+backend/
+├── prisma/
+│   ├── schema.prisma           # Modèles de données (14 tables)
+│   ├── migrations/             # Migrations SQL auto-générées
+│   └── seed.ts                 # Données de test
+├── src/
+│   ├── config/
+│   │   ├── env.ts             # Variables d'environnement
+│   │   └── prisma.ts          # Client Prisma singleton
+│   ├── controllers/           # Logique métier
+│   │   ├── auth.controller.ts     # Inscription, connexion
+│   │   ├── user.controller.ts     # CRUD utilisateurs
+│   │   ├── dossier.controller.ts  # Gestion dossiers
+│   │   ├── audience.controller.ts # Gestion audiences
+│   │   ├── decision.controller.ts # Décisions judiciaires
+│   │   ├── instruction.controller.ts # Instructions juge→greffe
+│   │   ├── notification.controller.ts # Notifications
+│   │   ├── blog.controller.ts     # Articles blog
+│   │   ├── document.controller.ts # Documents publics
+│   │   ├── salle.controller.ts    # Gestion salles
+│   │   ├── ai.controller.ts       # Chatbot IA
+│   │   └── admin.controller.ts    # Admin & stats
+│   ├── middleware/
+│   │   ├── auth.ts            # Authentification JWT
+│   │   ├── errorHandler.ts    # Gestion erreurs globale
+│   │   ├── validate.ts        # Validation express-validator
+│   │   ├── rateLimiter.ts     # Rate limiting
+│   │   └── notFoundHandler.ts # 404 handler
+│   ├── routes/                # Définition des routes
+│   │   ├── auth.routes.ts
+│   │   ├── user.routes.ts
+│   │   ├── dossier.routes.ts
+│   │   ├── audience.routes.ts
+│   │   ├── decision.routes.ts
+│   │   ├── instruction.routes.ts
+│   │   ├── notification.routes.ts
+│   │   ├── blog.routes.ts
+│   │   ├── document.routes.ts
+│   │   ├── salle.routes.ts
+│   │   ├── ai.routes.ts
+│   │   └── admin.routes.ts
+│   ├── services/              # Services métier
+│   │   ├── notification.service.ts  # Email/SMS/WhatsApp
+│   │   ├── audit.service.ts         # Logs d'audit
+│   │   └── stats.service.ts         # Statistiques
+│   ├── utils/
+│   │   ├── logger.ts          # Winston logger
+│   │   ├── jwt.ts             # Génération/vérification JWT
+│   │   └── ApiError.ts        # Classe erreur personnalisée
+│   └── index.ts               # Point d'entrée Express
+├── logs/                      # Fichiers de logs
+├── uploads/                   # Fichiers uploadés
+├── .env.example              # Template variables env
+├── docker-compose.yml        # Config Docker
+├── Dockerfile                # Image Docker
+├── package.json
+└── tsconfig.json
+```
 
-1. Dans votre projet Lovable, activez Lovable Cloud
-2. Cela créera automatiquement une instance Supabase
+## 🚀 Installation rapide
 
-### 2. Appliquer les Migrations SQL
+### Prérequis
+- Node.js 18+
+- PostgreSQL 15+
+- npm ou yarn
 
-Les migrations sont numérotées dans l'ordre d'exécution. Appliquez-les dans l'ordre :
-
-#### Migration 1 : Schéma Initial
-- Crée les types énumérés de base
-- Crée les tables `user_roles` et `profiles`
-- Configure les triggers pour la création automatique de profils
-
-#### Migration 2 : Fonctions de Sécurité
-- Crée la fonction `has_role()` (SECURITY DEFINER)
-- Configure les policies RLS pour `user_roles` et `profiles`
-
-#### Migration 3 : Tables Dossiers
-- Crée toutes les tables liées aux dossiers
-- Configure les index pour la performance
-- Ajoute les triggers de logging
-
-#### Migration 4 : Policies RLS Dossiers
-- Configure toutes les policies d'accès pour les dossiers
-- Définit les permissions par rôle
-
-#### Migration 5 : Tables Audiences
-- Crée les tables d'audiences, participants et PV
-- Crée la vue publique `audiences_publiques`
-
-#### Migration 6 : Policies RLS Audiences
-- Configure les accès aux audiences par rôle
-
-#### Migration 7 : Tables Notifications
-- Crée le système complet de notifications
-- Ajoute la fonction `send_notification()`
-- Crée les préférences par défaut
-
-#### Migration 8 : Policies RLS Notifications
-- Configure les accès aux notifications
-
-#### Migration 9 : Tables Blog
-- Crée les tables articles et commentaires
-- Ajoute les triggers de génération de slug
-
-#### Migration 10 : Policies RLS Blog
-- Configure l'accès public aux articles publiés
-
-#### Migration 11 : Autres Tables
-- Crée les tables paiements, audit, chatbot
-- Crée la vue `stats_generales`
-
-#### Migration 12 : Storage Buckets
-- Crée les buckets de stockage
-- Configure les policies d'accès aux fichiers
-
-### 3. Configurer les Secrets
-
-Dans les paramètres Lovable Cloud, ajoutez les secrets suivants :
+### Étapes
 
 ```bash
-# Pour les emails (Resend)
-RESEND_API_KEY=votre_cle_resend
+# 1. Aller dans le dossier backend
+cd backend
 
-# Pour les SMS (Twilio) - optionnel
-TWILIO_ACCOUNT_SID=votre_account_sid
-TWILIO_AUTH_TOKEN=votre_auth_token
-TWILIO_PHONE_NUMBER=votre_numero_twilio
+# 2. Installer les dépendances
+npm install
 
-# Lovable AI (déjà configuré automatiquement)
-LOVABLE_API_KEY=auto_genere
+# 3. Configurer l'environnement
+cp .env.example .env
+# Éditer .env avec vos valeurs
+
+# 4. Démarrer PostgreSQL (Docker ou local)
+docker-compose up -d postgres
+# OU utiliser PostgreSQL local
+
+# 5. Générer le client Prisma
+npm run prisma:generate
+
+# 6. Appliquer les migrations
+npm run prisma:migrate
+
+# 7. (Optionnel) Seeder la base
+npm run prisma:seed
+
+# 8. Démarrer le serveur
+npm run dev
 ```
 
-### 4. Déployer les Edge Functions
+## ⚙️ Configuration
 
-Les edge functions sont déjà créées dans `supabase/functions/`. Elles seront déployées automatiquement.
+### Variables d'environnement (.env)
 
-#### send-notification
-- Envoie des notifications selon les préférences utilisateur
-- Utilise la fonction SQL `send_notification()`
+```env
+# ═══════════════════════════════════════════════════════════
+# SERVEUR
+# ═══════════════════════════════════════════════════════════
+NODE_ENV=development
+PORT=3001
 
-#### chat-assistant
-- Chatbot IA utilisant Lovable AI (Gemini Flash)
-- Streaming des réponses en temps réel
-- Contexte e-Justice intégré
+# ═══════════════════════════════════════════════════════════
+# BASE DE DONNÉES
+# ═══════════════════════════════════════════════════════════
+DATABASE_URL="postgresql://postgres:password@localhost:5432/ejustice?schema=public"
 
-#### send-email
-- Envoi d'emails via Resend
-- Utilisé par le système de notifications
+# ═══════════════════════════════════════════════════════════
+# JWT
+# ═══════════════════════════════════════════════════════════
+JWT_SECRET="votre-cle-secrete-longue-et-complexe-minimum-32-caracteres"
+JWT_EXPIRES_IN=7d
+JWT_REFRESH_EXPIRES_IN=30d
 
-#### send-sms
-- Envoi de SMS via Twilio
-- Utilisé par le système de notifications
+# ═══════════════════════════════════════════════════════════
+# CORS
+# ═══════════════════════════════════════════════════════════
+CORS_ORIGIN=http://localhost:5173
 
-### 5. Créer un Utilisateur Admin Initial
+# ═══════════════════════════════════════════════════════════
+# EMAIL (Resend)
+# ═══════════════════════════════════════════════════════════
+RESEND_API_KEY=re_xxxxxxxxxxxxx
+EMAIL_FROM=noreply@votredomaine.com
+EMAIL_FROM_NAME=e-Justice Sénégal
 
-Après l'installation, créez un premier utilisateur admin :
+# ═══════════════════════════════════════════════════════════
+# SMS/WHATSAPP (Twilio)
+# ═══════════════════════════════════════════════════════════
+TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxx
+TWILIO_AUTH_TOKEN=xxxxxxxxxxxxx
+TWILIO_PHONE_NUMBER=+221xxxxxxxxx
+TWILIO_WHATSAPP_NUMBER=whatsapp:+14155238886
 
-```sql
--- 1. Créer l'utilisateur (via l'interface Supabase ou signup)
--- 2. Lui attribuer le rôle admin
-INSERT INTO public.user_roles (user_id, role)
-VALUES ('uuid-de-lutilisateur', 'admin');
+# ═══════════════════════════════════════════════════════════
+# IA
+# ═══════════════════════════════════════════════════════════
+AI_PROVIDER=lovable
+LOVABLE_AI_KEY=votre-cle-lovable
+# OU
+# AI_PROVIDER=openai
+# OPENAI_API_KEY=sk-xxxxxxxxxxxxx
+
+# ═══════════════════════════════════════════════════════════
+# SÉCURITÉ
+# ═══════════════════════════════════════════════════════════
+BCRYPT_ROUNDS=12
+SESSION_SECRET=votre-session-secret
+
+# ═══════════════════════════════════════════════════════════
+# FICHIERS
+# ═══════════════════════════════════════════════════════════
+MAX_FILE_SIZE=10485760
+UPLOAD_DIR=./uploads
+ALLOWED_FILE_TYPES=pdf,doc,docx,jpg,jpeg,png
+
+# ═══════════════════════════════════════════════════════════
+# RATE LIMITING
+# ═══════════════════════════════════════════════════════════
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+
+# ═══════════════════════════════════════════════════════════
+# LOGGING
+# ═══════════════════════════════════════════════════════════
+LOG_LEVEL=info
+LOG_FILE=./logs/app.log
+
+# ═══════════════════════════════════════════════════════════
+# ADMIN INITIAL
+# ═══════════════════════════════════════════════════════════
+ADMIN_EMAIL=admin@ejustice.sn
+ADMIN_PASSWORD=Admin123!
+```
+
+## 📊 Modèles de données (Prisma)
+
+### Tables principales
+
+| Table | Description | Relations |
+|-------|-------------|-----------|
+| `User` | Utilisateurs | Profile, Roles, Notifications |
+| `Profile` | Profils étendus | User |
+| `UserRole` | Rôles utilisateurs | User |
+| `Dossier` | Dossiers judiciaires | Audiences, Pieces, Historique |
+| `Audience` | Audiences/Hearings | Dossier, Salle, Participants |
+| `Decision` | Décisions judiciaires | Dossier, Juge |
+| `Instruction` | Instructions juge→greffe | Juge, Greffier |
+| `Notification` | Notifications multi-canal | User |
+| `NotificationPreference` | Préférences notifications | User |
+| `Salle` | Salles d'audience | Audiences |
+| `BlogPost` | Articles blog | Auteur |
+| `DocumentPublic` | Documents publics | - |
+| `AuditLog` | Logs d'audit | User |
+| `HistoriqueDossier` | Historique dossiers | Dossier |
+
+### Enums
+
+```prisma
+enum Role {
+  ADMIN
+  GREFFIER
+  JUGE
+  PROCUREUR
+  AVOCAT
+  JUSTICIABLE
+}
+
+enum StatutDossier {
+  OUVERT
+  EN_COURS
+  SUSPENDU
+  CLOS
+  ARCHIVE
+}
+
+enum StatutAudience {
+  PROGRAMMEE
+  EN_COURS
+  TERMINEE
+  REPORTEE
+  ANNULEE
+}
+
+enum TypeNotification {
+  AUDIENCE_CREEE
+  AUDIENCE_REPORTEE
+  AUDIENCE_ANNULEE
+  RAPPEL_AUDIENCE
+  DOSSIER_CREE
+  DOSSIER_MODIFIE
+  DOSSIER_CLOS
+  PIECE_AJOUTEE
+  DECISION_RENDUE
+  DECISION_VALIDEE
+  DECISION_PUBLIEE
+  INSTRUCTION_ENVOYEE
+  INSTRUCTION_TRAITEE
+  CONVOCATION_RECUE
+  ECHEANCE_PROCHE
+  COMMENTAIRE_AJOUTE
+  UTILISATEUR_CREE
+  ALERTE_SECURITE
+  ASSIGNATION_NOUVEAU_DOSSIER
+}
+
+enum CanalNotification {
+  EMAIL
+  SMS
+  WHATSAPP
+  IN_APP
+}
+```
+
+## 🔌 API Endpoints
+
+### Authentification (`/api/auth`)
+
+```
+POST /register          # Inscription (compte inactif)
+POST /login             # Connexion
+POST /logout            # Déconnexion
+POST /refresh-token     # Renouveler token
+POST /forgot-password   # Mot de passe oublié
+POST /reset-password    # Réinitialiser MDP
+```
+
+### Utilisateurs (`/api/users`)
+
+```
+GET    /me              # Mon profil
+PUT    /me              # Modifier mon profil
+GET    /                # Liste utilisateurs (Admin/Greffier)
+POST   /                # Créer utilisateur (Admin/Greffier)
+GET    /:id             # Profil utilisateur
+POST   /:id/activate    # Activer compte (Admin/Greffier)
+POST   /:id/deactivate  # Désactiver compte (Admin/Greffier)
+DELETE /:id             # Supprimer (Admin)
+```
+
+### Dossiers (`/api/dossiers`)
+
+```
+GET    /                # Liste (filtrée par rôle)
+POST   /                # Créer
+GET    /:id             # Détails
+PUT    /:id             # Modifier
+DELETE /:id             # Supprimer
+POST   /:id/pieces      # Ajouter pièce
+PUT    /:id/statut      # Changer statut
+```
+
+### Audiences (`/api/audiences`)
+
+```
+GET    /                # Liste (filtrée par rôle)
+POST   /                # Créer
+GET    /:id             # Détails
+PUT    /:id             # Modifier
+DELETE /:id             # Annuler
+GET    /public          # Affichage public
+GET    /public/:uuid    # Détails publics (QR code)
+POST   /:id/reporter    # Reporter
+```
+
+### Décisions (`/api/decisions`)
+
+```
+GET    /                # Mes décisions
+POST   /                # Créer (Juge)
+GET    /:id             # Détails
+PUT    /:id             # Modifier (Juge)
+POST   /:id/soumettre   # Soumettre validation
+POST   /:id/valider     # Valider (Greffier)
+POST   /:id/rejeter     # Rejeter (Greffier)
+POST   /:id/publier     # Publier (Greffier)
+```
+
+### Instructions (`/api/instructions`)
+
+```
+GET    /                # Liste
+POST   /                # Créer (Juge)
+GET    /:id             # Détails
+PUT    /:id/prendre     # Prendre en charge (Greffier)
+PUT    /:id/completer   # Compléter (Greffier)
+PUT    /:id/annuler     # Annuler (Juge)
+```
+
+### Notifications (`/api/notifications`)
+
+```
+GET    /                # Mes notifications
+PUT    /:id/read        # Marquer comme lue
+PUT    /read-all        # Tout marquer comme lu
+GET    /preferences     # Mes préférences
+PUT    /preferences     # Modifier préférences
+POST   /send            # Envoyer (Greffier)
+```
+
+### Salles (`/api/salles`)
+
+```
+GET    /                # Liste des salles
+POST   /                # Créer (Greffier)
+GET    /:id             # Détails
+PUT    /:id             # Modifier
+DELETE /:id             # Supprimer
+GET    /disponibles     # Salles disponibles
 ```
 
 ## 🔐 Sécurité
 
-### Row Level Security (RLS)
-
-Toutes les tables ont le RLS activé. Les policies définissent :
-
-- **Admin** : Accès complet à tout
-- **Greffier** : Création et gestion des dossiers/audiences
-- **Juge** : Accès aux dossiers/audiences assignés
-- **Procureur** : Accès aux dossiers assignés
-- **Avocat** : Accès aux dossiers de leurs clients
-- **Justiciable** : Accès à leurs propres dossiers
-
-### Fonction has_role()
-
-```sql
--- Vérifier si un utilisateur a un rôle
-SELECT public.has_role(auth.uid(), 'admin');
-```
-
-Cette fonction est `SECURITY DEFINER` pour éviter les problèmes de récursion RLS.
-
-## 📊 Vues Importantes
-
-### stats_generales
-Statistiques globales de la plateforme :
-```sql
-SELECT * FROM public.stats_generales;
-```
-
-### audiences_publiques
-Audiences du jour pour l'affichage public :
-```sql
-SELECT * FROM public.audiences_publiques;
-```
-
-## 🔔 Système de Notifications
-
-### Envoyer une Notification
+### Middleware d'authentification
 
 ```typescript
-// Via l'edge function
-const { data, error } = await supabase.functions.invoke('send-notification', {
-  body: {
-    userId: 'uuid',
-    type: 'audience_programmee',
-    titre: 'Nouvelle audience',
-    message: 'Vous avez une audience programmée le...',
-    metadata: { audienceId: 'uuid' }
-  }
+// Exemple d'utilisation
+router.get('/protected', authenticate, (req, res) => {
+  // req.user contient { userId, email, roles }
 });
 
-// Via SQL directement
-SELECT public.send_notification(
-  'uuid-utilisateur',
-  'audience_programmee',
-  'Nouvelle audience',
-  'Vous avez une audience programmée le...',
-  '{"audienceId": "uuid"}'::jsonb
-);
+// Avec vérification de rôle
+router.get('/admin-only', authenticate, requireRole('ADMIN'), handler);
 ```
 
-### Types de Notifications
+### Filtrage par rôle
 
-Les 12 types disponibles :
-1. `audience_programmee`
-2. `audience_modifiee`
-3. `audience_annulee`
-4. `rappel_audience`
-5. `dossier_cree`
-6. `dossier_clos`
-7. `piece_ajoutee`
-8. `decision_rendue`
-9. `convocation_recue`
-10. `echeance_proche`
-11. `commentaire_ajoute`
-12. `assignation_nouveau_dossier`
+Le backend filtre automatiquement les données selon le rôle :
 
-## 🤖 Chatbot IA
+```typescript
+// dossier.controller.ts - Exemple
+if (userRoles.includes('JUGE')) {
+  where.jugeId = userId;
+} else if (userRoles.includes('AVOCAT')) {
+  where.avocats = { some: { avocatId: userId } };
+} else if (userRoles.includes('JUSTICIABLE')) {
+  where.justiciableId = userId;
+}
+```
+
+## 📧 Service de notifications
+
+### Canaux supportés
+
+1. **Email** (Resend API)
+2. **SMS** (Twilio API)
+3. **WhatsApp** (Twilio API)
+4. **In-App** (Base de données)
 
 ### Utilisation
 
 ```typescript
-// Appeler le chatbot
-const { data, error } = await supabase.functions.invoke('chat-assistant', {
-  body: {
-    messages: [
-      { role: 'user', content: 'Comment créer un dossier ?' }
-    ]
-  }
+import { createNotification, sendEmail } from '../services/notification.service';
+
+// Notification complète
+await createNotification({
+  userId: 'uuid',
+  type: 'AUDIENCE_CREEE',
+  titre: 'Nouvelle audience',
+  message: 'Vous avez une audience le...',
+  canal: 'EMAIL',
+  actionUrl: '/audiences/xxx',
+});
+
+// Email direct
+await sendEmail({
+  to: 'user@example.com',
+  subject: 'Sujet',
+  html: '<h1>Contenu</h1>',
 });
 ```
 
-Le chatbot utilise Lovable AI (Gemini Flash) avec un contexte spécifique e-Justice.
+## 🐳 Docker
 
-## 📦 Storage
+### docker-compose.yml
 
-### Buckets Créés
+```yaml
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: ejustice
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
-1. **avatars** (public) - Photos de profil
-2. **dossiers-documents** (privé) - Documents des dossiers
-3. **articles-images** (public) - Images des articles
-4. **proces-verbaux** (privé) - Fichiers PV
+  backend:
+    build: .
+    ports:
+      - "3001:3001"
+    environment:
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/ejustice
+    depends_on:
+      - postgres
 
-### Upload d'un Fichier
-
-```typescript
-const { data, error } = await supabase.storage
-  .from('dossiers-documents')
-  .upload(`${dossierId}/${filename}`, file);
+volumes:
+  postgres_data:
 ```
 
-## 🧪 Tests et Validation
+### Commandes Docker
 
-### 1. Vérifier les Tables
+```bash
+# Démarrer tout
+docker-compose up -d
 
-```sql
-SELECT table_name 
-FROM information_schema.tables 
-WHERE table_schema = 'public';
+# Voir les logs
+docker-compose logs -f backend
+
+# Arrêter
+docker-compose down
+
+# Nettoyer (⚠️ supprime les données)
+docker-compose down -v
 ```
 
-### 2. Vérifier les Policies RLS
+## 🧪 Tests
 
-```sql
-SELECT schemaname, tablename, policyname 
-FROM pg_policies 
-WHERE schemaname = 'public';
-```
+```bash
+# Tests unitaires
+npm test
 
-### 3. Tester les Rôles
+# Tests avec couverture
+npm run test:coverage
 
-```sql
--- Créer un utilisateur test
--- Lui assigner un rôle
--- Vérifier l'accès aux données
+# Mode watch
+npm run test:watch
 ```
 
 ## 📈 Monitoring
 
-### Logs d'Audit
+### Logs
 
-Toutes les actions sur les dossiers sont loggées :
+Les logs sont écrits dans :
+- Console (développement)
+- `logs/combined.log` (tous les logs)
+- `logs/error.log` (erreurs uniquement)
 
-```sql
-SELECT * FROM public.audit_logs
-ORDER BY created_at DESC
-LIMIT 100;
+### Format des logs
+
+```
+2025-12-05 10:30:00 [info]: User logged in: user@example.com
+2025-12-05 10:30:05 [info]: Audience created: AUD-2025-001
+2025-12-05 10:30:10 [error]: Failed to send email: Connection timeout
 ```
 
-### Historique des Dossiers
+## 🚀 Déploiement
 
-```sql
-SELECT * FROM public.historique_dossier
-WHERE dossier_id = 'uuid'
-ORDER BY created_at DESC;
+### Variables de production
+
+```env
+NODE_ENV=production
+DATABASE_URL=postgresql://user:pass@host:5432/ejustice
+JWT_SECRET=production-secret-very-long
+CORS_ORIGIN=https://votre-domaine.com
 ```
 
-## 🔄 Maintenance
+### Plateformes recommandées
 
-### Backup
+1. **Railway** - Simple, intégration GitHub
+2. **Heroku** - Mature, add-ons PostgreSQL
+3. **DigitalOcean** - App Platform + Managed DB
+4. **AWS** - ECS/EC2 + RDS
 
-Les backups sont automatiques avec Lovable Cloud.
+## ✅ Checklist de déploiement
 
-### Ajouter un Nouveau Type de Notification
-
-1. Ajouter le type dans les préférences par défaut
-2. Mettre à jour la fonction `create_default_notification_preferences()`
-3. Documenter le nouveau type
-
-### Ajouter une Nouvelle Table
-
-1. Créer une nouvelle migration SQL
-2. Activer le RLS : `ALTER TABLE ... ENABLE ROW LEVEL SECURITY;`
-3. Créer les policies RLS appropriées
-4. Ajouter les index nécessaires
-
-## 🆘 Dépannage
-
-### Erreur "infinite recursion in RLS"
-➡️ Utilisez la fonction `has_role()` au lieu de queries directes dans les policies
-
-### Les données ne s'affichent pas
-➡️ Vérifiez que le RLS est activé et que les policies sont correctes
-
-### Edge function timeout
-➡️ Vérifiez les logs dans l'onglet Functions de Supabase
-
-## 📚 Ressources
-
-- [Documentation Lovable Cloud](https://docs.lovable.dev/features/cloud)
-- [Documentation Supabase](https://supabase.com/docs)
-- [BACKEND_ROADMAP.md](./BACKEND_ROADMAP.md) - Feuille de route complète
-
-## ✅ Checklist de Déploiement
-
-- [ ] Lovable Cloud activé
-- [ ] Migrations SQL appliquées dans l'ordre
-- [ ] Secrets configurés (RESEND_API_KEY minimum)
-- [ ] Premier utilisateur admin créé
-- [ ] Edge functions déployées
-- [ ] Storage buckets créés
-- [ ] Tests de sécurité RLS effectués
-- [ ] Documentation utilisateur rédigée
+- [ ] Variables d'environnement configurées
+- [ ] Base de données PostgreSQL provisionnée
+- [ ] Migrations appliquées (`prisma migrate deploy`)
+- [ ] Utilisateur admin créé (via seed ou manuellement)
+- [ ] CORS configuré avec le domaine frontend
+- [ ] SSL/HTTPS activé
+- [ ] Rate limiting configuré
+- [ ] Logs configurés
+- [ ] Backups automatiques de la DB
 
 ---
 
-**Version:** 1.0  
-**Date:** 2025-01-07  
+**Version:** 2.0  
+**Date:** Décembre 2025  
 **Équipe:** e-Justice Sénégal
