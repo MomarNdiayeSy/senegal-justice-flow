@@ -204,6 +204,19 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       });
     }
 
+    if (role === "citizen") {
+      sections.push({
+        title: "Sama Justice",
+        items: [
+          { icon: FileText, label: "Pré-Plainte", path: "/citizen/pre-plainte" },
+          { icon: Building2, label: "Guide Démarches", path: "/citizen/demarches" },
+          { icon: FolderOpen, label: "Modèles Documents", path: "/citizen/modeles" },
+          { icon: Monitor, label: "Où aller ?", path: "/citizen/localisation" },
+          { icon: Scale, label: "Sama Yoon – Droits", path: "/citizen/sama-yoon" },
+        ]
+      });
+    }
+
     // Section commune - Notifications (pour tous sauf peut-être ajustements)
     sections.push({
       title: "Notifications",
@@ -234,7 +247,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       juge: "Juge",
       procureur: "Procureur",
       avocat: "Avocat",
-      justiciable: "Justiciable"
+      justiciable: "Justiciable",
+      citizen: "Citoyen"
     };
     return roles[role] || role;
   };
@@ -246,7 +260,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       juge: "bg-purple-500/20 text-purple-200",
       procureur: "bg-orange-500/20 text-orange-200",
       avocat: "bg-green-500/20 text-green-200",
-      justiciable: "bg-cyan-500/20 text-cyan-200"
+      justiciable: "bg-cyan-500/20 text-cyan-200",
+      citizen: "bg-teal-500/20 text-teal-200"
     };
     return colors[role] || "bg-gray-500/20 text-gray-200";
   };
