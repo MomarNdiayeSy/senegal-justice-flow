@@ -243,6 +243,17 @@ const mockUsers: User[] = [
     tribunal: "N/A",
     dateCreation: "2024-03-01",
     actif: true
+  },
+  {
+    id: "7",
+    email: "citoyen@justice.sn",
+    nom: "Diop",
+    prenom: "Ousmane",
+    role: "citizen",
+    telephone: "+221 77 789 01 23",
+    tribunal: "N/A",
+    dateCreation: "2024-03-15",
+    actif: true
   }
 ];
 
