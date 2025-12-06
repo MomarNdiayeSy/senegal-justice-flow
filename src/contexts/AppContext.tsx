@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 
 // Types
-export type UserRole = "admin" | "greffier" | "juge" | "procureur" | "avocat" | "justiciable";
+export type UserRole = "admin" | "greffier" | "juge" | "procureur" | "avocat" | "justiciable" | "citizen";
 
 export interface User {
   id: string;
