@@ -32,6 +32,9 @@ const Dashboard = () => {
       case "justiciable":
         navigate("/justiciable/dashboard");
         break;
+      case "citizen":
+        navigate("/citizen/dashboard");
+        break;
       default:
         navigate("/greffier/dashboard");
     }
