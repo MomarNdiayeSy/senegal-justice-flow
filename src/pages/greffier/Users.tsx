@@ -46,7 +46,8 @@ const GreffierUsers = () => {
       juge: { style: "bg-purple-100 text-purple-700", label: "Juge" },
       procureur: { style: "bg-indigo-100 text-indigo-700", label: "Procureur" },
       avocat: { style: "bg-teal-100 text-teal-700", label: "Avocat" },
-      justiciable: { style: "bg-gray-100 text-gray-700", label: "Justiciable" }
+      justiciable: { style: "bg-gray-100 text-gray-700", label: "Justiciable" },
+      citizen: { style: "bg-emerald-100 text-emerald-700", label: "Citoyen" }
     };
     return config[role];
   };
