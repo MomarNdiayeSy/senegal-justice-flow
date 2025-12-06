@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { 
   FileText, 
@@ -13,6 +12,7 @@ import {
   Heart,
   Shield
 } from "lucide-react";
+import DashboardLayout from "@/components/DashboardLayout";
 
 const CitizenDashboard = () => {
   const navigate = useNavigate();
@@ -79,7 +79,8 @@ const CitizenDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
+    <DashboardLayout>
+    <div className="bg-background">
       {/* Header */}
       <motion.div
         initial={{ y: -20, opacity: 0 }}
@@ -177,6 +178,7 @@ const CitizenDashboard = () => {
         ))}
       </motion.div>
     </div>
+    </DashboardLayout>
   );
 };
 
