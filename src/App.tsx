@@ -54,6 +54,14 @@ import JusticiableMonDossier from "./pages/justiciable/MonDossier";
 import JusticiableDecisions from "./pages/justiciable/Decisions";
 import JusticiableTableauAffichage from "./pages/justiciable/TableauAffichage";
 
+// Citizen pages
+import CitizenDashboard from "./pages/citizen/Dashboard";
+import CitizenPrePlainte from "./pages/citizen/PrePlainte";
+import CitizenDemarches from "./pages/citizen/Demarches";
+import CitizenModeles from "./pages/citizen/Modeles";
+import CitizenLocalisation from "./pages/citizen/Localisation";
+import CitizenSamaYoon from "./pages/citizen/SamaYoon";
+
 // Common pages
 import CommonAudiences from "./pages/common/Audiences";
 import CommonDossiers from "./pages/common/Dossiers";
@@ -239,6 +247,38 @@ const App = () => (
             <Route path="/justiciable/tableau-affichage" element={
               <ProtectedRoute allowedRoles={["justiciable"]}>
                 <JusticiableTableauAffichage />
+              </ProtectedRoute>
+            } />
+
+            {/* Routes Citizen */}
+            <Route path="/citizen/dashboard" element={
+              <ProtectedRoute allowedRoles={["citizen"]}>
+                <CitizenDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/citizen/pre-plainte" element={
+              <ProtectedRoute allowedRoles={["citizen"]}>
+                <CitizenPrePlainte />
+              </ProtectedRoute>
+            } />
+            <Route path="/citizen/demarches" element={
+              <ProtectedRoute allowedRoles={["citizen"]}>
+                <CitizenDemarches />
+              </ProtectedRoute>
+            } />
+            <Route path="/citizen/modeles" element={
+              <ProtectedRoute allowedRoles={["citizen"]}>
+                <CitizenModeles />
+              </ProtectedRoute>
+            } />
+            <Route path="/citizen/localisation" element={
+              <ProtectedRoute allowedRoles={["citizen"]}>
+                <CitizenLocalisation />
+              </ProtectedRoute>
+            } />
+            <Route path="/citizen/sama-yoon" element={
+              <ProtectedRoute allowedRoles={["citizen"]}>
+                <CitizenSamaYoon />
               </ProtectedRoute>
             } />
 

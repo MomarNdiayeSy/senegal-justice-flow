@@ -45,7 +45,8 @@ const Auth = () => {
     { value: "juge", label: "Juge", needsTribunal: true },
     { value: "procureur", label: "Procureur", needsTribunal: true },
     { value: "avocat", label: "Avocat", needsTribunal: false },
-    { value: "justiciable", label: "Justiciable", needsTribunal: false }
+    { value: "justiciable", label: "Justiciable", needsTribunal: false },
+    { value: "citizen", label: "Citoyen", needsTribunal: false }
   ];
 
   // Vérifier si le rôle sélectionné nécessite un tribunal
@@ -66,6 +67,8 @@ const Auth = () => {
         return "/avocat/dashboard";
       case "justiciable":
         return "/justiciable/dashboard";
+      case "citizen":
+        return "/citizen/dashboard";
       default:
         return "/dashboard";
     }

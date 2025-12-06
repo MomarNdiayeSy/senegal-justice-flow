@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Scale, Monitor, BarChart3, ArrowRight, CheckCircle2, Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Shield, Sparkles, Zap, Globe, Newspaper } from "lucide-react";
+import { Scale, Monitor, BarChart3, ArrowRight, CheckCircle2, Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Shield, Sparkles, Zap, Globe, Newspaper, FileText, Compass, FileDown, BookOpen, Users } from "lucide-react";
 import heroImage from "@/assets/hero-modern.jpg";
 import featureDigital from "@/assets/feature-digital.jpg";
 import featureSecure from "@/assets/feature-secure.jpg";
@@ -343,6 +343,71 @@ const Index = () => {
               ))}
             </motion.div>
           </div>
+        </div>
+      </section>
+
+      {/* Espace Citoyen - Sama Justice */}
+      <section className="py-10 md:py-20 bg-gradient-to-br from-emerald-500/5 via-teal-500/5 to-cyan-500/5">
+        <div className="container mx-auto px-4 md:px-6">
+          <motion.div
+            initial={{ y: 50, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <div className="inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 px-4 py-2 rounded-full mb-4">
+              <Users className="w-4 h-4" />
+              <span className="text-sm font-medium">Nouveau</span>
+            </div>
+            <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-display font-bold mb-4">
+              Espace Citoyen – <span className="text-emerald-600 dark:text-emerald-400">Sama Justice</span>
+            </h3>
+            <p className="text-base md:text-xl text-muted-foreground max-w-3xl mx-auto">
+              Faciliter l'accès à la justice pour tous les citoyens sénégalais
+            </p>
+          </motion.div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6 mb-8">
+            {[
+              { icon: FileText, title: "Pré-plainte", description: "Préparez votre plainte en ligne", color: "from-blue-500 to-cyan-500" },
+              { icon: Compass, title: "Guide des démarches", description: "Étapes simplifiées", color: "from-emerald-500 to-teal-500" },
+              { icon: FileDown, title: "Modèles documents", description: "Documents téléchargeables", color: "from-purple-500 to-pink-500" },
+              { icon: MapPin, title: "Localisation", description: "Services juridiques proches", color: "from-orange-500 to-red-500" },
+              { icon: BookOpen, title: "Sama Yoon", description: "Mini-encyclopédie juridique", color: "from-amber-500 to-yellow-500" }
+            ].map((item, index) => (
+              <motion.div
+                key={index}
+                initial={{ y: 30, opacity: 0 }}
+                whileInView={{ y: 0, opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <Card className="p-4 md:p-6 h-full text-center hover:shadow-elegant transition-all duration-300 group cursor-pointer border-0 bg-card">
+                  <div className={`p-3 rounded-xl bg-gradient-to-br ${item.color} w-fit mx-auto mb-3 group-hover:scale-110 transition-transform`}>
+                    <item.icon className="w-6 h-6 text-white" />
+                  </div>
+                  <h4 className="font-semibold mb-1 group-hover:text-emerald-600 transition-colors">{item.title}</h4>
+                  <p className="text-sm text-muted-foreground">{item.description}</p>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+
+          <motion.div
+            initial={{ y: 30, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true }}
+            className="text-center"
+          >
+            <Button 
+              size="lg" 
+              className="bg-emerald-600 hover:bg-emerald-700 shadow-lg hover:scale-105 transition-smooth"
+              onClick={() => navigate("/auth")}
+            >
+              Accéder à l'Espace Citoyen
+              <ArrowRight className="ml-2 w-5 h-5" />
+            </Button>
+          </motion.div>
         </div>
       </section>
 

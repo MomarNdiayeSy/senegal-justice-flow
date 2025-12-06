@@ -47,7 +47,8 @@ const Users = () => {
     juge: "Juge",
     procureur: "Procureur",
     avocat: "Avocat",
-    justiciable: "Justiciable"
+    justiciable: "Justiciable",
+    citizen: "Citoyen"
   };
 
   const roleColors: Record<UserRole, string> = {
@@ -56,7 +57,8 @@ const Users = () => {
     juge: "bg-purple-500 hover:bg-purple-600",
     procureur: "bg-amber-500 hover:bg-amber-600",
     avocat: "bg-green-500 hover:bg-green-600",
-    justiciable: "bg-gray-500 hover:bg-gray-600"
+    justiciable: "bg-gray-500 hover:bg-gray-600",
+    citizen: "bg-teal-500 hover:bg-teal-600"
   };
 
   const filteredUsers = users.filter(user =>
