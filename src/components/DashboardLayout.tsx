@@ -217,21 +217,23 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       });
     }
 
-    // Section commune - Notifications (pour tous sauf peut-être ajustements)
-    sections.push({
-      title: "Notifications",
-      items: [
-        { icon: Bell, label: "Mes Notifications", path: "/dashboard/notifications" },
-      ]
-    });
+    // Section commune - Notifications (pour tous sauf citoyen)
+    if (role !== "citizen") {
+      sections.push({
+        title: "Notifications",
+        items: [
+          { icon: Bell, label: "Mes Notifications", path: "/dashboard/notifications" },
+        ]
+      });
 
-    // Affichage public - accessible à tous
-    sections.push({
-      title: "Accès Public",
-      items: [
-        { icon: Monitor, label: "Affichage Public", path: "/public-display" },
-      ]
-    });
+      // Affichage public - accessible à tous sauf citoyen
+      sections.push({
+        title: "Accès Public",
+        items: [
+          { icon: Monitor, label: "Affichage Public", path: "/public-display" },
+        ]
+      });
+    }
 
     return sections;
   };
